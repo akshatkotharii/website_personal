@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blog — Akshat Kothari</title>
+  <meta name="description" content="Writing on tech, research, startups, and daily life by Akshat Kothari.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .blog-page-wrap {
+      max-width: 800px; margin: 0 auto;
+      padding: 0 clamp(1.25rem,5vw,2.5rem);
+      padding-top: calc(var(--offset) + 56px);
+      padding-bottom: 80px;
+    }
+    .blog-page-back {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-family: var(--mono); font-size: 11px; color: var(--accent);
+      text-decoration: none; letter-spacing: 0.1em; text-transform: uppercase;
+      margin-bottom: 2rem; transition: opacity 0.18s;
+    }
+    .blog-page-back:hover { opacity: 0.65; }
+    .blog-page-title {
+      font-family: var(--serif); font-size: clamp(36px,6vw,56px);
+      letter-spacing: -0.03em; line-height: 1.08; margin-bottom: 0.75rem;
+    }
+    .blog-page-sub { font-size: 16px; color: var(--gray-600); font-weight: 300; line-height: 1.7; margin-bottom: 2.5rem; }
+    .blog-filters {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 2.5rem;
+      padding-bottom: 1.5rem; border-bottom: 1px solid var(--gray-100);
+    }
+    .filter-pill {
+      font-family: var(--mono); font-size: 11px; font-weight: 500;
+      padding: 6px 14px; border-radius: 100px;
+      border: 1.5px solid var(--gray-200); background: none;
+      color: var(--gray-600); cursor: pointer; transition: all 0.18s;
+    }
+    .filter-pill:hover { border-color: var(--accent); color: var(--accent); }
+    .filter-pill.active { background: var(--accent); border-color: var(--accent); color: white; }
+    .blog-all-list { display: flex; flex-direction: column; }
+    .blog-all-row {
+      display: grid; grid-template-columns: 72px 1fr auto;
+      gap: 1.5rem; align-items: start;
+      padding: 1.6rem 0; border-bottom: 1px solid var(--gray-100);
+      text-decoration: none; color: inherit; transition: padding-left 0.2s;
+    }
+    .blog-all-row:first-child { border-top: 1px solid var(--gray-100); }
+    .blog-all-row:hover { padding-left: 10px; }
+    .blog-all-row:hover .blog-all-title { color: var(--accent); }
+    .blog-all-date { font-family: var(--mono); font-size: 11px; color: var(--gray-400); line-height: 1.6; padding-top: 3px; }
+    .blog-all-title { font-family: var(--serif); font-size: 20px; letter-spacing: -0.015em; line-height: 1.25; margin-bottom: 5px; transition: color 0.18s; }
+    .blog-all-excerpt { font-size: 13.5px; color: var(--gray-600); line-height: 1.65; }
+    .blog-all-tag { font-family: var(--mono); font-size: 10px; background: var(--accent-soft); color: var(--accent); padding: 3px 8px; border-radius: 4px; white-space: nowrap; height: fit-content; margin-top: 3px; }
+    .blog-skel-row { display: grid; grid-template-columns: 72px 1fr; gap: 1.5rem; padding: 1.6rem 0; border-bottom: 1px solid var(--gray-100); }
+    .blog-pagination { display: flex; align-items: center; justify-content: center; gap: 1rem; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--gray-100); }
+    .page-btn { font-family: var(--mono); font-size: 12px; font-weight: 500; padding: 9px 20px; border: 1.5px solid var(--gray-200); border-radius: 8px; background: none; cursor: pointer; color: var(--black); transition: all 0.18s; }
+    .page-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+    .page-btn:disabled { opacity: 0.3; cursor: default; }
+    .page-info { font-family: var(--mono); font-size: 11px; color: var(--gray-400); }
+    .blog-notice { text-align: center; padding: 4rem 1rem; font-family: var(--mono); font-size: 12px; color: var(--gray-400); }
+    .blog-notice a { color: var(--accent); }
+    @media (max-width: 600px) {
+      .blog-all-row { grid-template-columns: 56px 1fr; }
+      .blog-all-tag { display: none; }
+      .blog-all-title { font-size: 17px; }
+    }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="nav-logo">Akshat Kothari</a>
+  <ul class="nav-links">
+    <li><a href="../index.html#about">About</a></li>
+    <li><a href="../index.html#projects">Projects</a></li>
+    <li><a href="../index.html#experience">Experience</a></li>
+    <li><a href="index.html" style="color:var(--black)">Blog</a></li>
+    <li><a href="../index.html#contact">Contact</a></li>
+  </ul>
+  <a href="../index.html#contact" class="nav-cta">Let's connect →</a>
+  <button class="nav-toggle" id="navToggle" aria-label="Menu"><span></span><span></span><span></span></button>
+</nav>
+<div class="nav-drawer" id="navDrawer">
+  <a href="../index.html#about">About</a>
+  <a href="../index.html#projects">Projects</a>
+  <a href="../index.html#experience">Experience</a>
+  <a href="index.html">Blog</a>
+  <a href="../index.html#contact">Contact</a>
+</div>
+
+<div class="blog-page-wrap">
+  <a href="../index.html" class="blog-page-back">← Home</a>
+  <h1 class="blog-page-title">The blog</h1>
+  <p class="blog-page-sub">Tech learnings, research notes, startup thoughts, daily life.<br>Written for myself. You're welcome to read along.</p>
+
+  <div class="blog-filters" id="blogFilters">
+    <button class="filter-pill active" data-cat="all">All</button>
+    <button class="filter-pill" data-cat="personal">Personal</button>
+    <button class="filter-pill" data-cat="tech">Tech</button>
+    <button class="filter-pill" data-cat="research">Research</button>
+    <button class="filter-pill" data-cat="project">Project</button>
+    <button class="filter-pill" data-cat="startups">Startups</button>
+    <button class="filter-pill" data-cat="learning">Learning</button>
+    <button class="filter-pill" data-cat="travel">Travel</button>
+  </div>
+
+  <div class="blog-all-list" id="blogAllList"></div>
+
+  <div class="blog-pagination" id="blogPagination" style="display:none;">
+    <button class="page-btn" id="prevBtn" disabled>← Prev</button>
+    <span class="page-info" id="pageInfo"></span>
+    <button class="page-btn" id="nextBtn">Next →</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase-config.js"></script>
+<script>
+const PER_PAGE = 10;
+let page = 0, totalCount = 0, activeFilter = 'all';
+
+// mobile nav
+const toggle = document.getElementById('navToggle');
+const drawer = document.getElementById('navDrawer');
+if (toggle) toggle.addEventListener('click', () => { const o = drawer.classList.toggle('open'); toggle.classList.toggle('open', o); });
+drawer && drawer.querySelectorAll('a').forEach(a => a.addEventListener('click', () => { drawer.classList.remove('open'); toggle.classList.remove('open'); }));
+
+// filters
+document.getElementById('blogFilters').addEventListener('click', e => {
+  const pill = e.target.closest('.filter-pill');
+  if (!pill) return;
+  document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+  pill.classList.add('active');
+  activeFilter = pill.dataset.cat;
+  page = 0;
+  loadPosts();
+});
+
+// pagination
+document.getElementById('prevBtn').addEventListener('click', () => { page--; loadPosts(); });
+document.getElementById('nextBtn').addEventListener('click', () => { page++; loadPosts(); });
+
+async function loadPosts() {
+  const list = document.getElementById('blogAllList');
+  const pag  = document.getElementById('blogPagination');
+
+  list.innerHTML = [1,2,3,4].map(() => `
+    <div class="blog-skel-row">
+      <div><div class="skel" style="width:48px;height:12px;margin-bottom:6px;"></div><div class="skel" style="width:32px;height:12px;"></div></div>
+      <div><div class="skel" style="width:75%;height:20px;margin-bottom:10px;"></div><div class="skel" style="width:100%;height:13px;margin-bottom:5px;"></div><div class="skel" style="width:60%;height:13px;"></div></div>
+    </div>`).join('');
+
+  const sb = getSupabase();
+  let posts = [];
+
+  if (sb) {
+    try {
+      let q = sb.from('posts')
+        .select('id,title,slug,category,excerpt,created_at', { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(page * PER_PAGE, (page + 1) * PER_PAGE - 1);
+      if (activeFilter !== 'all') q = q.eq('category', activeFilter);
+      const { data, error, count } = await q;
+      if (!error) { posts = data; totalCount = count; }
+    } catch(e) { console.warn(e); }
+  }
+
+  // static fallback
+  if (!posts.length && page === 0) {
+    const slugs = ['why-i-started-this-site','first-iot-project-lessons','energy-nudges-research-notes'];
+    for (const slug of slugs) {
+      try { const r = await fetch(`posts/${slug}.json`); if (r.ok) { const p = await r.json(); if (activeFilter==='all'||(p.cat||p.category)===activeFilter) posts.push(p); } } catch(_) {}
+    }
+    totalCount = posts.length;
+  }
+
+  if (!posts.length) {
+    list.innerHTML = `<div class="blog-notice">No posts${activeFilter!=='all'?' in this category':''} yet — <a href="/admin">write one</a>.</div>`;
+    pag.style.display = 'none';
+    return;
+  }
+
+  list.innerHTML = '';
+  posts.forEach(p => {
+    const d = new Date(p.created_at || p.date);
+    const a = document.createElement('a');
+    a.href = `post.html?slug=${p.slug}`;
+    a.className = 'blog-all-row';
+    a.innerHTML = `
+      <div class="blog-all-date">${d.toLocaleString('en',{month:'short'})} ${d.getDate()}<br>${d.getFullYear()}</div>
+      <div><div class="blog-all-title">${p.title}</div><div class="blog-all-excerpt">${p.excerpt||''}</div></div>
+      <div class="blog-all-tag">${p.category||p.cat||'personal'}</div>`;
+    list.appendChild(a);
+  });
+
+  const totalPages = Math.ceil(totalCount / PER_PAGE);
+  if (totalPages > 1) {
+    pag.style.display = 'flex';
+    document.getElementById('prevBtn').disabled = page === 0;
+    document.getElementById('nextBtn').disabled = page >= totalPages - 1;
+    document.getElementById('pageInfo').textContent = `Page ${page+1} of ${totalPages}`;
+  } else { pag.style.display = 'none'; }
+}
+
+loadPosts();
+</script>
+</body>
+</html>

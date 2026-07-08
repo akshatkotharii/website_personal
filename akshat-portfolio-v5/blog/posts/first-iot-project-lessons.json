@@ -1,0 +1,8 @@
+{
+  "title": "What I learned building my first IoT project",
+  "slug": "first-iot-project-lessons",
+  "date": "2025-06-10T09:00:00",
+  "cat": "project",
+  "excerpt": "The laundry scheduler taught me more about systems thinking than any textbook. Here's what went sideways and why I'm glad it did.",
+  "html": "<p>Nobody tells you that IoT projects spend 80% of their time not working. The device is unresponsive. The API returns nothing. The socket drops out every 12 minutes for no reason anyone can explain.</p><p>This is the laundry scheduler project I'm building for a course — an IoT-connected smart socket that monitors power draw, detects when a wash cycle finishes, and schedules the next run automatically via a web dashboard.</p><h2>What actually happened</h2><p>Week 1: I underestimated how much of the work is just getting devices to talk to each other reliably. Not even doing anything useful — just talking.</p><p>Week 2: I overbuilt the dashboard. Spent two days on UI that nobody asked for before realising the core sensor logic wasn't working yet.</p><p>Week 3: I stripped everything back. One endpoint. One sensor read. One display. Got that working first, then built outward.</p><h2>The real lesson</h2><p><strong>Systems thinking over feature building.</strong> I kept wanting to add things before the foundation was solid. Once I stopped doing that, the project moved fast.</p><p>The other lesson: debugging across hardware and software simultaneously is genuinely hard and genuinely satisfying when you nail it.</p><p>More updates as the project develops.</p>"
+}

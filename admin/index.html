@@ -417,6 +417,7 @@ sb && sb.auth.onAuthStateChange((event, session) => {
     document.getElementById('userEmail').textContent = session.user.email;
     resetActivityTimer();
     loadPosts();
+    loadPendingComments();
   } else {
     document.getElementById('loginScreen').style.display = 'flex';
     document.getElementById('adminShell').style.display  = 'none';

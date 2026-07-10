@@ -634,16 +634,16 @@ async function approveComment(id) {
   if (!sb) return;
   await sb.from('comments').update({ approved: true }).eq('id', id);
   document.getElementById('comment-'+id)?.remove();
-  loadPosts();
-}
+  await loadPendingComments();
+  await loadPosts();}
 
 async function deleteComment(id) {
   if (!confirm('Delete?')) return;
   if (!sb) return;
   await sb.from('comments').delete().eq('id', id);
   document.getElementById('comment-'+id)?.remove();
-  loadPosts();
-}
+  await loadPendingComments();
+  await loadPosts();}
 
 async function editPost(id) {
   const { data, error } = await sb.from('posts').select('*').eq('id', id).single();

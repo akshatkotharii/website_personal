@@ -53,6 +53,16 @@
     .post-body blockquote { border-left: 3px solid var(--accent); margin: 2rem 0; padding: 0.5rem 1.5rem; color: var(--black); font-family: var(--serif); font-size: 20px; font-style: italic; line-height: 1.5; }
     .post-body ul, .post-body ol { padding-left: 1.5rem; margin-bottom: 1.35rem; }
     .post-body li { margin-bottom: 0.4rem; }
+    .post-body figure { margin: 2rem 0; }
+    .post-body img {
+      display: block; width: 100%; max-width: 100%; height: auto;
+      border-radius: var(--radius-md); border: 1px solid var(--gray-100);
+    }
+    .post-body figcaption {
+      margin-top: 0.6rem; font-family: var(--mono); font-size: 11px;
+      color: var(--gray-400); text-align: center; line-height: 1.5;
+    }
+    .post-body span[style*="font-family"] { line-height: inherit; }
 
     /* ── LIKES ── */
     .post-engagement {

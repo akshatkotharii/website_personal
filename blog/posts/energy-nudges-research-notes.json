@@ -1,0 +1,8 @@
+{
+  "title": "Energy nudges: can data actually change behaviour?",
+  "slug": "energy-nudges-research-notes",
+  "date": "2025-06-03T08:30:00",
+  "cat": "research",
+  "excerpt": "Early notes from my IVCCE research. The gap between what people say they'll do about energy and what they actually do is enormous.",
+  "html": "<p>The project I'm working on at IVCCE is trying to answer a deceptively simple question: if you show people their energy usage in real time, will they change their behaviour?</p><p>Spoiler: kind of, but not in the way you'd expect.</p><h2>What the literature says</h2><p>There's a well-documented gap between intention and action in energy consumption. People <em>say</em> they want to save energy. They <em>don't</em> change their behaviour when shown abstract stats. But when you give them a specific, timely, contextual nudge — <strong>\"your usage right now is 40% higher than usual\"</strong> — something shifts.</p><p>The nudge has to be specific. It has to arrive at the right moment. And it has to propose an action, not just report a number.</p><h2>What we're building</h2><p>The smart nudging system we're designing tries to do exactly this — detect anomalous usage patterns and send targeted, actionable alerts at the moment they'll be most effective.</p><p>The ML component is the interesting part. Training a model on household usage data to distinguish between a normal Tuesday evening and one where something is obviously wrong.</p><p>Still early days. Will update as the research develops.</p>"
+}

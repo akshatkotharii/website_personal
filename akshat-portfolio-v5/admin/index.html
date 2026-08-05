@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — Akshat Kothari</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <!-- Supabase SDK + shared config -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/supabase-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --white: #ffffff;
+      --black: #0F0F0F;
+      --gray-50: #F7F7F5;
+      --gray-100: #EFEFED;
+      --gray-200: #DDDDD9;
+      --gray-400: #9A9A96;
+      --gray-600: #5C5C58;
+      --accent: #1A1AFF;
+      --accent-soft: #E8E8FF;
+      --red: #EF4444;
+      --green: #22C55E;
+      --serif: 'Instrument Serif', Georgia, serif;
+      --sans: 'Inter', system-ui, sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+      --radius: 10px;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--sans); background: var(--gray-50);
+      color: var(--black); font-size: 15px; line-height: 1.6;
+      -webkit-font-smoothing: antialiased; min-height: 100vh;
+    }
+
+    /* ── TOP BAR ── */
+    .topbar {
+      background: var(--white); border-bottom: 1px solid var(--gray-100);
+      padding: 0 2rem; height: 52px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 50;
+    }
+    .topbar-logo { font-family: var(--serif); font-size: 17px; letter-spacing: -0.02em; }
+    .topbar-badge {
+      font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em;
+      background: var(--accent-soft); color: var(--accent);
+      padding: 3px 8px; border-radius: 4px; text-transform: uppercase;
+    }
+    .topbar-right { display: flex; align-items: center; gap: 1rem; }
+    #userEmail { font-size: 12px; color: var(--gray-400); font-family: var(--mono); }
+    .btn-sm {
+      font-size: 12px; font-weight: 500; padding: 6px 14px;
+      border-radius: 6px; border: none; cursor: pointer; font-family: var(--sans);
+      transition: opacity 0.18s;
+    }
+    .btn-sm:hover { opacity: 0.8; }
+    .btn-sm.danger { background: var(--red); color: white; }
+    .btn-sm.primary { background: var(--accent); color: white; }
+    .btn-sm.ghost { background: var(--gray-100); color: var(--black); }
+    .btn-back { font-size: 12px; color: var(--gray-600); text-decoration: none; font-family: var(--mono); letter-spacing: 0.06em; }
+    .btn-back:hover { color: var(--accent); }
+
+    /* ── LOGIN SCREEN ── */
+    #loginScreen {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      padding: 2rem; background: var(--white);
+    }
+    .login-box {
+      width: 100%; max-width: 400px;
+    }
+    .login-eyebrow {
+      font-family: var(--mono); font-size: 11px; color: var(--accent);
+      letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 1rem;
+    }
+    .login-title {
+      font-family: var(--serif); font-size: 32px; letter-spacing: -0.025em;
+      margin-bottom: 0.5rem; line-height: 1.15;
+    }
+    .login-sub { font-size: 14px; color: var(--gray-600); margin-bottom: 2rem; }
+    .form-field { margin-bottom: 1rem; }
+    .form-label {
+      display: block; font-family: var(--mono); font-size: 10px;
+      letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-400);
+      margin-bottom: 5px;
+    }
+    .form-input {
+      width: 100%; padding: 11px 14px; border: 1.5px solid var(--gray-200);
+      border-radius: var(--radius); font-family: var(--sans); font-size: 14px;
+      color: var(--black); background: var(--white); outline: none;
+      transition: border-color 0.18s, box-shadow 0.18s;
+    }
+    .form-input:focus {
+      border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+    .btn-login {
+      width: 100%; padding: 13px; background: var(--black); color: white;
+      border: none; border-radius: var(--radius); font-size: 14px; font-weight: 500;
+      cursor: pointer; font-family: var(--sans); transition: background 0.18s;
+      margin-top: 0.5rem;
+    }
+    .btn-login:hover { background: var(--accent); }
+    .login-error {
+      font-size: 13px; color: var(--red); margin-top: 0.75rem;
+      font-family: var(--mono); display: none;
+    }
+    .login-error.show { display: block; }
+
+    /* ── SETUP NOTICE ── */
+    .setup-notice {
+      background: #FFFBEB; border: 1px solid #FCD34D; border-radius: var(--radius);
+      padding: 1rem 1.25rem; margin-bottom: 1.5rem;
+      font-size: 13px; color: #92400E; line-height: 1.6;
+    }
+    .setup-notice strong { display: block; margin-bottom: 4px; font-size: 12px; letter-spacing: 0.04em; font-family: var(--mono); }
+    .setup-notice code {
+      background: rgba(0,0,0,0.06); padding: 1px 5px; border-radius: 3px;
+      font-family: var(--mono); font-size: 12px;
+    }
+
+    /* ── ADMIN SHELL ── */
+    #adminShell { display: none; }
+
+    .admin-layout {
+      max-width: 1000px; margin: 0 auto; padding: 2rem clamp(1rem, 4vw, 2rem);
+      display: grid; grid-template-columns: 1fr 340px; gap: 2rem; align-items: start;
+    }
+
+    /* ── PANEL ── */
+    .panel {
+      background: var(--white); border: 1px solid var(--gray-100);
+      border-radius: 14px; overflow: hidden;
+    }
+    .panel-header {
+      padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--gray-100);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .panel-title {
+      font-family: var(--serif); font-size: 18px; letter-spacing: -0.01em;
+    }
+    .panel-count {
+      font-family: var(--mono); font-size: 11px; color: var(--gray-400);
+    }
+    .panel-body { padding: 1.5rem; }
+
+    /* ── POST LIST ── */
+    .post-list { display: flex; flex-direction: column; gap: 0; }
+    .post-item {
+      display: flex; align-items: start; justify-content: space-between;
+      gap: 1rem; padding: 1rem 0; border-bottom: 1px solid var(--gray-100);
+    }
+    .post-item:last-child { border-bottom: none; }
+    .post-item-info { flex: 1; min-width: 0; }
+    .post-item-title {
+      font-weight: 500; font-size: 14px; white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px;
+    }
+    .post-item-meta {
+      font-family: var(--mono); font-size: 10px; color: var(--gray-400);
+      display: flex; gap: 8px; align-items: center;
+    }
+    .post-item-tag {
+      background: var(--accent-soft); color: var(--accent);
+      padding: 1px 6px; border-radius: 3px; font-size: 9px;
+    }
+    .post-item-actions { display: flex; gap: 6px; flex-shrink: 0; }
+    .icon-btn {
+      width: 28px; height: 28px; border: 1px solid var(--gray-200);
+      border-radius: 6px; background: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; transition: background 0.15s, border-color 0.15s;
+    }
+    .icon-btn:hover { background: var(--gray-50); border-color: var(--gray-400); }
+    .icon-btn.del:hover { background: #FEF2F2; border-color: var(--red); }
+
+    .empty-state {
+      text-align: center; padding: 2.5rem 1rem; color: var(--gray-400);
+    }
+    .empty-state p { font-family: var(--mono); font-size: 12px; }
+
+    /* ── WRITE PANEL ── */
+    .write-panel { position: sticky; top: 68px; }
+
+    .field-group { margin-bottom: 1.1rem; }
+    .field-label {
+      display: block; font-family: var(--mono); font-size: 10px;
+      letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-400);
+      margin-bottom: 5px;
+    }
+    .field-input, .field-select, .field-textarea {
+      width: 100%; padding: 9px 12px; border: 1.5px solid var(--gray-200);
+      border-radius: 8px; font-family: var(--sans); font-size: 13.5px;
+      color: var(--black); background: var(--white); outline: none;
+      transition: border-color 0.18s, box-shadow 0.18s;
+    }
+    .field-input:focus, .field-select:focus, .field-textarea:focus {
+      border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+    .field-textarea { min-height: 180px; resize: vertical; line-height: 1.65; font-size: 13px; }
+    .editor-tools {
+      display: flex; flex-wrap: wrap; gap: 6px; padding: 8px;
+      border: 1.5px solid var(--gray-200); border-bottom: 0;
+      border-radius: 8px 8px 0 0; background: var(--gray-50);
+    }
+    .tool-btn, .tool-select, .tool-color {
+      min-width: 32px; height: 30px; border: 1px solid var(--gray-200);
+      border-radius: 6px; background: var(--white); color: var(--black);
+      font-family: var(--sans); font-size: 12px; cursor: pointer;
+    }
+    .tool-btn:hover, .tool-select:hover { border-color: var(--accent); color: var(--accent); }
+    .tool-select { padding: 0 8px; width: auto; }
+    .tool-color { width: 36px; padding: 3px; }
+    .rich-editor {
+      min-height: 260px; padding: 14px; border: 1.5px solid var(--gray-200);
+      border-radius: 0 0 8px 8px; background: var(--white); outline: none;
+      color: var(--black); font-size: 14px; line-height: 1.75; overflow-wrap: anywhere;
+    }
+    .rich-editor:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .rich-editor h2 { font-family: var(--serif); font-size: 26px; line-height: 1.2; margin: 1.4rem 0 0.6rem; }
+    .rich-editor h3 { font-size: 17px; margin: 1.2rem 0 0.4rem; }
+    .rich-editor p { margin-bottom: 0.9rem; }
+    .rich-editor blockquote { border-left: 3px solid var(--accent); margin: 1rem 0; padding: 0.4rem 1rem; color: var(--gray-600); font-family: var(--serif); font-size: 19px; }
+    .rich-editor img { max-width: 100%; height: auto; border-radius: 8px; margin: 1rem 0; display: block; }
+    .rich-editor:empty::before { content: attr(data-placeholder); color: var(--gray-400); pointer-events: none; }
+    .editor-help { font-family: var(--mono); font-size: 10.5px; color: var(--gray-400); margin-top: 6px; line-height: 1.5; }
+    .field-textarea.editor-source { display: none; margin-top: 10px; min-height: 120px; font-family: var(--mono); }
+    .field-textarea.editor-source.show { display: block; }
+
+    .write-actions { display: flex; gap: 8px; margin-top: 1.25rem; }
+    .btn-publish-main {
+      flex: 1; padding: 11px; background: var(--accent); color: white;
+      border: none; border-radius: 8px; font-size: 13px; font-weight: 500;
+      cursor: pointer; font-family: var(--sans); transition: opacity 0.18s;
+    }
+    .btn-publish-main:hover { opacity: 0.85; }
+    .btn-publish-main:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .publish-status {
+      margin-top: 0.75rem; font-family: var(--mono); font-size: 11px;
+      color: var(--gray-400); text-align: center; min-height: 18px;
+    }
+    .publish-status.ok  { color: var(--green); }
+    .publish-status.err { color: var(--red); }
+
+    /* ── STATS ROW ── */
+    .stats-row {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem;
+    }
+    .stat-card {
+      background: var(--white); border: 1px solid var(--gray-100);
+      border-radius: var(--radius); padding: 1.1rem 1.25rem;
+    }
+    .stat-label { font-family: var(--mono); font-size: 10px; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
+    .stat-val { font-family: var(--serif); font-size: 28px; letter-spacing: -0.02em; }
+
+    /* ── COMMENTS PANEL ── */
+    .comments-admin { margin-top: 2rem; }
+    .comment-admin-item {
+      padding: 1rem 0; border-bottom: 1px solid var(--gray-100);
+      display: flex; align-items: start; gap: 1rem;
+    }
+    .comment-admin-body { flex: 1; min-width: 0; }
+    .comment-admin-meta { font-family: var(--mono); font-size: 10px; color: var(--gray-400); margin-bottom: 4px; }
+    .comment-admin-name { font-weight: 600; font-size: 13px; margin-bottom: 3px; }
+    .comment-admin-text { font-size: 13px; color: var(--gray-600); line-height: 1.5; }
+    .comment-admin-post { font-family: var(--mono); font-size: 10px; color: var(--accent); margin-top: 4px; }
+    .badge-pending { background: #FEF3C7; color: #92400E; font-family: var(--mono); font-size: 9px; padding: 2px 6px; border-radius: 3px; }
+    .post-like-count { font-family: var(--mono); font-size: 11px; color: var(--gray-400); display: flex; align-items: center; gap: 4px; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 720px) {
+      .admin-layout { grid-template-columns: 1fr; }
+      .write-panel { position: static; }
+      .stats-row { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══ LOGIN ═══ -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-eyebrow">Admin · Akshat Kothari</div>
+    <h1 class="login-title">Welcome back.</h1>
+    <p class="login-sub">Sign in with your Supabase email to manage blog posts.</p>
+
+    <div class="setup-notice" id="setupNotice">
+      <strong>⚙ SETUP REQUIRED</strong>
+      Open <code>admin/index.html</code> and set your Supabase
+      <code>SUPABASE_URL</code> and <code>SUPABASE_ANON_KEY</code>
+      at the top of the script tag below. Then create a <code>posts</code>
+      table in Supabase — see README for the SQL.
+    </div>
+
+    <div class="form-field">
+      <label class="form-label" for="loginEmail">Email</label>
+      <input type="email" id="loginEmail" class="form-input" placeholder="akshat@example.com" autocomplete="email">
+    </div>
+    <div class="form-field">
+      <label class="form-label" for="loginPassword">Password</label>
+      <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="btn-login" id="loginBtn">Sign in →</button>
+    <p class="login-error" id="loginError"></p>
+  </div>
+</div>
+
+<!-- ═══ ADMIN SHELL ═══ -->
+<div id="adminShell">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span class="topbar-logo">Akshat Kothari</span>
+      <span class="topbar-badge">Admin</span>
+    </div>
+    <div class="topbar-right">
+      <a href="../index.html" class="btn-back">← View site</a>
+      <span id="userEmail"></span>
+      <button class="btn-sm danger" id="logoutBtn">Sign out</button>
+    </div>
+  </div>
+
+  <div style="max-width:1000px;margin:0 auto;padding:1.5rem clamp(1rem,4vw,2rem) 0;">
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Total posts</div>
+        <div class="stat-val" id="statTotal">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">This month</div>
+        <div class="stat-val" id="statMonth">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Last post</div>
+        <div class="stat-val" style="font-size:16px;padding-top:6px;" id="statLast">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="admin-layout">
+
+    <!-- LEFT: POSTS + COMMENTS -->
+    <div>
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">All posts</span>
+          <span class="panel-count" id="postCount">0 posts</span>
+        </div>
+        <div class="panel-body">
+          <div class="post-list" id="postList">
+            <div class="empty-state"><p>No posts yet. Write your first one →</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PENDING COMMENTS -->
+      <div class="panel" style="margin-top:1.5rem;">
+        <div class="panel-header">
+          <span class="panel-title">Pending comments</span>
+          <span class="panel-count" id="pendingCount">—</span>
+        </div>
+        <div class="panel-body">
+          <div id="pendingList"><div class="empty-state"><p>No pending comments.</p></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: WRITE -->
+    <div class="write-panel">
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title" id="writeTitle">New post</span>
+          <button class="btn-sm ghost" id="clearBtn" style="font-size:11px;">Clear</button>
+        </div>
+        <div class="panel-body">
+          <div class="field-group">
+            <label class="field-label">Title *</label>
+            <input type="text" class="field-input" id="fTitle" placeholder="What's on your mind?">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Category</label>
+            <select class="field-select" id="fCategory">
+              <option value="personal">personal</option>
+              <option value="tech">tech</option>
+              <option value="research">research</option>
+              <option value="project">project</option>
+              <option value="learning">learning</option>
+              <option value="startups">startups</option>
+              <option value="travel">travel</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Excerpt (shown on index)</label>
+            <input type="text" class="field-input" id="fExcerpt" placeholder="One compelling sentence…">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Content *</label>
+            <div class="editor-tools" aria-label="Blog editor toolbar">
+              <select class="tool-select" id="formatBlock" title="Text style">
+                <option value="p">Body</option>
+                <option value="h2">Heading</option>
+                <option value="h3">Subheading</option>
+                <option value="blockquote">Quote</option>
+              </select>
+              <select class="tool-select" id="fontName" title="Font">
+                <option value="Inter">Inter</option>
+                <option value="Instrument Serif">Serif</option>
+                <option value="Georgia">Georgia</option>
+                <option value="JetBrains Mono">Mono</option>
+              </select>
+              <input class="tool-color" type="color" id="fontColor" value="#0F0F0F" title="Text color">
+              <button class="tool-btn" type="button" data-cmd="bold" title="Bold"><strong>B</strong></button>
+              <button class="tool-btn" type="button" data-cmd="italic" title="Italic"><em>I</em></button>
+              <button class="tool-btn" type="button" data-cmd="insertUnorderedList" title="Bulleted list">•</button>
+              <button class="tool-btn" type="button" data-cmd="insertOrderedList" title="Numbered list">1.</button>
+              <button class="tool-btn" type="button" id="linkBtn" title="Add link">↗</button>
+              <button class="tool-btn" type="button" id="imageUrlBtn" title="Insert image URL">Img</button>
+              <button class="tool-btn" type="button" id="toggleHtmlBtn" title="Edit HTML">HTML</button>
+            </div>
+            <div class="rich-editor" id="richEditor" contenteditable="true" data-placeholder="Write your blog here. Drag images in, use toolbar, or import a Word doc below."></div>
+            <textarea class="field-textarea editor-source" id="fContent" placeholder="HTML source"></textarea>
+            <div class="editor-help">Import `.docx`, upload image files, paste image URLs, or edit HTML directly. Images from your computer are embedded into post HTML.</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Import visual content</label>
+            <input type="file" class="field-input" id="docImport" accept=".docx">
+            <div style="height:8px"></div>
+            <input type="file" class="field-input" id="imageUpload" accept="image/*" multiple>
+          </div>
+          <input type="hidden" id="fEditId">
+          <div class="write-actions">
+            <button class="btn-publish-main" id="publishBtn">Publish →</button>
+          </div>
+          <div class="publish-status" id="publishStatus"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// Config is in js/supabase-config.js — edit ONLY that file
+const sb = getSupabase();
+
+// Hide setup notice if credentials are set
+if (sb) {
+  const notice = document.getElementById('setupNotice');
+  if (notice) notice.style.display = 'none';
+}
+
+// ── AUTH STATE ──────────────────────────────────────────────
+if (!sb) {
+  document.getElementById('loginError').textContent = 'Supabase not configured. Edit js/supabase-config.js first.';
+  document.getElementById('loginError').classList.add('show');
+}
+
+// Auto-logout after 8 hours inactivity
+let activityTimer;
+function resetActivityTimer() {
+  clearTimeout(activityTimer);
+  activityTimer = setTimeout(async () => {
+    if (sb) await sb.auth.signOut();
+    showLoginErr('Session expired. Please sign in again.');
+  }, 8 * 60 * 60 * 1000);
+}
+document.addEventListener('click', resetActivityTimer);
+document.addEventListener('keydown', resetActivityTimer);
+
+sb && sb.auth.onAuthStateChange((event, session) => {
+  if (session) {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('adminShell').style.display  = 'block';
+    document.getElementById('userEmail').textContent = session.user.email;
+    resetActivityTimer();
+    loadPosts();
+    loadPendingComments();
+  } else {
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('adminShell').style.display  = 'none';
+    clearTimeout(activityTimer);
+  }
+});
+
+// ── LOGIN ───────────────────────────────────────────────────
+document.getElementById('loginBtn').addEventListener('click', async () => {
+  const email    = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errEl    = document.getElementById('loginError');
+  const btn      = document.getElementById('loginBtn');
+
+  if (!email || !password) {
+    showLoginErr('Please enter email and password.');
+    return;
+  }
+
+  btn.textContent = 'Signing in…';
+  btn.disabled    = true;
+
+  if (!sb) { showLoginErr('Supabase not configured. Edit js/supabase-config.js.'); btn.disabled=false; btn.textContent='Sign in →'; return; }
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+
+  btn.textContent = 'Sign in →';
+  btn.disabled    = false;
+
+  if (error) { console.error('Login error:', error); showLoginErr(error.message || JSON.stringify(error)); }
+});
+
+document.getElementById('loginPassword').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('loginBtn').click();
+});
+
+function showLoginErr(msg) {
+  const el = document.getElementById('loginError');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+
+// ── LOGOUT ──────────────────────────────────────────────────
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+  if (sb) await sb.auth.signOut();
+});
+
+// ── LOAD POSTS ──────────────────────────────────────────────
+async function loadPosts() {
+  const { data: posts, error } = await sb
+    .from('posts')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) { console.error(error); return; }
+
+  renderPostList(posts);
+  updateStats(posts);
+}
+
+function renderPostList(posts) {
+  const list = document.getElementById('postList');
+  document.getElementById('postCount').textContent = `${posts.length} post${posts.length !== 1 ? 's' : ''}`;
+
+  if (!posts.length) {
+    list.innerHTML = '<div class="empty-state"><p>No posts yet. Write your first one →</p></div>';
+    return;
+  }
+
+  list.innerHTML = posts.map(p => {
+    const d   = new Date(p.created_at);
+    const fmt = d.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+    return `
+      <div class="post-item" data-id="${p.id}">
+        <div class="post-item-info">
+          <div class="post-item-title">${p.title}</div>
+          <div class="post-item-meta">
+            <span>${fmt}</span>
+            <span class="post-item-tag">${p.category || 'personal'}</span>
+          </div>
+        </div>
+        <div class="post-item-actions">
+          <button class="icon-btn" title="View post" onclick="viewPost('${p.slug}')">↗</button>
+          <button class="icon-btn" title="Edit" onclick="editPost(${p.id})">✎</button>
+          <button class="icon-btn del" title="Delete" onclick="deletePost(${p.id}, '${p.title.replace(/'/g,"\\'")}')">✕</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function updateStats(posts) {
+  document.getElementById('statTotal').textContent = posts.length;
+
+  const now = new Date();
+  const thisMonth = posts.filter(p => {
+    const d = new Date(p.created_at);
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  });
+  document.getElementById('statMonth').textContent = thisMonth.length;
+
+  if (posts.length) {
+    const last = new Date(posts[0].created_at);
+    document.getElementById('statLast').textContent =
+      last.toLocaleDateString('en-GB', { day:'numeric', month:'short' });
+  } else {
+    document.getElementById('statLast').textContent = '—';
+  }
+}
+
+// ── RICH BLOG EDITOR ───────────────────────────────────────
+const richEditor = document.getElementById('richEditor');
+const sourceEditor = document.getElementById('fContent');
+
+function focusEditor() {
+  richEditor.focus();
+}
+
+function runEditorCommand(command, value = null) {
+  focusEditor();
+  document.execCommand(command, false, value);
+  syncEditorToSource();
+}
+
+function syncEditorToSource() {
+  sourceEditor.value = richEditor.innerHTML.trim();
+}
+
+function syncSourceToEditor() {
+  richEditor.innerHTML = sourceEditor.value.trim();
+}
+
+function getEditorContent() {
+  if (sourceEditor.classList.contains('show')) syncSourceToEditor();
+  syncEditorToSource();
+  return sourceEditor.value.trim();
+}
+
+function setEditorContent(html = '') {
+  richEditor.innerHTML = html;
+  sourceEditor.value = html;
+}
+
+function insertEditorHtml(html) {
+  focusEditor();
+  document.execCommand('insertHTML', false, html);
+  syncEditorToSource();
+}
+
+document.querySelectorAll('[data-cmd]').forEach(btn => {
+  btn.addEventListener('click', () => runEditorCommand(btn.dataset.cmd));
+});
+
+document.getElementById('formatBlock').addEventListener('change', e => {
+  runEditorCommand('formatBlock', `<${e.target.value}>`);
+});
+
+document.getElementById('fontName').addEventListener('change', e => {
+  runEditorCommand('fontName', e.target.value);
+});
+
+document.getElementById('fontColor').addEventListener('input', e => {
+  runEditorCommand('foreColor', e.target.value);
+});
+
+document.getElementById('linkBtn').addEventListener('click', () => {
+  const url = prompt('Link URL');
+  if (!url) return;
+  runEditorCommand('createLink', url);
+});
+
+document.getElementById('imageUrlBtn').addEventListener('click', () => {
+  const url = prompt('Image URL');
+  if (!url) return;
+  const alt = prompt('Alt text') || '';
+  insertEditorHtml(`<figure><img src="${escAttr(url)}" alt="${escAttr(alt)}"><figcaption>${escHtml(alt)}</figcaption></figure>`);
+});
+
+document.getElementById('toggleHtmlBtn').addEventListener('click', () => {
+  if (sourceEditor.classList.contains('show')) {
+    syncSourceToEditor();
+    sourceEditor.classList.remove('show');
+  } else {
+    syncEditorToSource();
+    sourceEditor.classList.add('show');
+  }
+});
+
+richEditor.addEventListener('input', syncEditorToSource);
+sourceEditor.addEventListener('input', () => {
+  if (sourceEditor.classList.contains('show')) syncSourceToEditor();
+});
+
+richEditor.addEventListener('paste', e => {
+  const files = [...(e.clipboardData?.files || [])].filter(file => file.type.startsWith('image/'));
+  if (!files.length) return;
+  e.preventDefault();
+  files.forEach(insertImageFile);
+});
+
+richEditor.addEventListener('drop', e => {
+  const files = [...(e.dataTransfer?.files || [])].filter(file => file.type.startsWith('image/'));
+  if (!files.length) return;
+  e.preventDefault();
+  files.forEach(insertImageFile);
+});
+
+document.getElementById('imageUpload').addEventListener('change', e => {
+  [...e.target.files].forEach(insertImageFile);
+  e.target.value = '';
+});
+
+document.getElementById('docImport').addEventListener('change', async e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  setStatus('Importing document...');
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const result = await mammoth.convertToHtml(
+      { arrayBuffer },
+      {
+        convertImage: mammoth.images.inline(async element => ({
+          src: await element.read('base64').then(imageBuffer => `data:${element.contentType};base64,${imageBuffer}`)
+        }))
+      }
+    );
+    setEditorContent(result.value);
+    setStatus('Document imported. Review formatting before publishing.', 'ok');
+  } catch (err) {
+    console.error(err);
+    setStatus('Could not import document. Try a .docx file.', 'err');
+  }
+  e.target.value = '';
+});
+
+function insertImageFile(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    insertEditorHtml(`<figure><img src="${reader.result}" alt="${escAttr(file.name)}"><figcaption>${escHtml(file.name)}</figcaption></figure>`);
+  };
+  reader.readAsDataURL(file);
+}
+
+function escHtml(s = '') {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function escAttr(s = '') {
+  return escHtml(s).replace(/'/g,'&#39;');
+}
+
+// ── PUBLISH / EDIT ──────────────────────────────────────────
+document.getElementById('publishBtn').addEventListener('click', async () => {
+  const title    = document.getElementById('fTitle').value.trim();
+  const content  = getEditorContent();
+  const category = document.getElementById('fCategory').value;
+  const excerpt  = document.getElementById('fExcerpt').value.trim();
+  const editId   = document.getElementById('fEditId').value;
+  const status   = document.getElementById('publishStatus');
+  const btn      = document.getElementById('publishBtn');
+
+  if (!title || !content) {
+    setStatus('Title and content are required.', 'err');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = editId ? 'Saving…' : 'Publishing…';
+  setStatus('');
+
+  // Build slug from title
+  const slug = title.toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-');
+
+  // Convert plain text to HTML paragraphs if no HTML tags present
+  const html = content.includes('<') ? content :
+    content.split(/\n{2,}/)
+      .filter(Boolean)
+      .map(p => `<p>${p.replace(/\n/g,'<br>')}</p>`)
+      .join('');
+
+  const payload = {
+    title,
+    slug,
+    category,
+    excerpt: excerpt || content.replace(/<[^>]+>/g,'').slice(0, 130) + (content.length > 130 ? '…' : ''),
+    content: html,
+  };
+
+  let sbError, sbData;
+
+  try {
+    if (editId) {
+      const res = await sb.from('posts').update(payload).eq('id', editId).select();
+      sbError = res.error; sbData = res.data;
+    } else {
+      const res = await sb.from('posts').insert([payload]).select();
+      sbError = res.error; sbData = res.data;
+    }
+  } catch(e) {
+    sbError = { message: e.message };
+  }
+
+  btn.disabled    = false;
+  btn.textContent = 'Publish →';
+
+  if (sbError) {
+    console.error('Supabase error:', sbError);
+    setStatus('Error: ' + (sbError.message || JSON.stringify(sbError)), 'err');
+  } else {
+    console.log('Published:', sbData);
+    setStatus(editId ? '✓ Post updated' : '✓ Published! Reload to see it.', 'ok');
+    clearForm();
+    setTimeout(loadPosts, 500);
+  }
+});
+
+// ── EDIT ────────────────────────────────────────────────────
+
+async function loadPendingComments() {
+  if (!sb) return;
+  const { data: comments , error} = await sb
+    .from('comments')
+    .select(`id,name,message,created_at,approved,post_id,posts(title, slug)`)
+    .eq('approved', false)
+    .order('created_at', { ascending: false });
+  const el = document.getElementById('pendingCount');
+  const list = document.getElementById('pendingList');
+  if (!comments || !comments.length) {
+    if (el) el.textContent = '0 pending';
+    if (list) list.innerHTML = '<div class="empty-state"><p>No pending comments 🎉</p></div>';
+    return;
+  }
+  if (el) el.textContent = `${comments.length} pending`;
+  if (list) list.innerHTML = comments.map(c => {
+    const d = new Date(c.created_at);
+    const fmt = d.toLocaleDateString('en-GB', { day:'numeric', month:'short' });
+    return `<div class="comment-admin-item" id="comment-${c.id}">
+      <div class="comment-admin-body">
+        <div class="comment-admin-name">${c.name} <span class="badge-pending">PENDING</span></div>
+        <div class="comment-admin-meta">${fmt}</div>
+        <div class="comment-admin-text">${c.message}</div>
+        <div class="comment-admin-post">On: ${c.posts?.title || ''}</div>
+      </div>
+      <div class="post-item-actions" style="flex-shrink:0">
+        <button class="icon-btn" style="color:#22C55E;border-color:#22C55E" onclick="approveComment(${c.id})">✓</button>
+        <button class="icon-btn del" onclick="deleteComment(${c.id})">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function approveComment(id) {
+  if (!sb) return;
+  await sb.from('comments').update({ approved: true }).eq('id', id);
+  document.getElementById('comment-'+id)?.remove();
+  await loadPendingComments();
+  await loadPosts();
+
+}
+
+async function deleteComment(id) {
+  if (!confirm('Delete?')) return;
+  if (!sb) return;
+  await sb.from('comments').delete().eq('id', id);
+  document.getElementById('comment-'+id)?.remove();
+  await loadPendingComments();
+  await loadPosts();
+
+}
+
+async function editPost(id) {
+  const { data, error } = await sb.from('posts').select('*').eq('id', id).single();
+  if (error || !data) return;
+
+  document.getElementById('fTitle').value    = data.title;
+  document.getElementById('fCategory').value = data.category || 'personal';
+  document.getElementById('fExcerpt').value  = data.excerpt || '';
+  setEditorContent(data.content || '');
+  document.getElementById('fEditId').value   = id;
+  document.getElementById('writeTitle').textContent = 'Edit post';
+  document.getElementById('publishBtn').textContent = 'Save changes →';
+
+  // Scroll to write panel
+  document.querySelector('.write-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ── DELETE ───────────────────────────────────────────────────
+async function deletePost(id, title) {
+  if (!confirm(`Delete "${title}"? This cannot be undone.`)) return;
+  const { error } = await sb.from('posts').delete().eq('id', id);
+  if (!error) loadPosts();
+}
+
+// ── VIEW ─────────────────────────────────────────────────────
+function viewPost(slug) {
+  window.open(`../blog/post.html?slug=${slug}`, '_blank');
+}
+
+// ── CLEAR FORM ───────────────────────────────────────────────
+document.getElementById('clearBtn').addEventListener('click', clearForm);
+
+function clearForm() {
+  ['fTitle','fExcerpt','fEditId'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  setEditorContent('');
+  sourceEditor.classList.remove('show');
+  document.getElementById('fCategory').value      = 'personal';
+  document.getElementById('writeTitle').textContent = 'New post';
+  document.getElementById('publishBtn').textContent = 'Publish →';
+  setStatus('');
+}
+
+function setStatus(msg, type='') {
+  const el = document.getElementById('publishStatus');
+  el.textContent = msg;
+  el.className   = 'publish-status' + (type ? ` ${type}` : '');
+}
+</script>
+</body>
+</html>

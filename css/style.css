@@ -145,7 +145,7 @@ nav {
 .ticker-track { overflow: hidden; flex: 1; }
 .ticker-inner {
   display: flex; gap: 4rem; white-space: nowrap;
-  width: max-content; animation: scroll-ticker 28s linear infinite;
+  width: max-content; animation: scroll-ticker 40s linear infinite;
 }
 @keyframes scroll-ticker { from{transform:translateX(0)} to{transform:translateX(-50%)} }
 

@@ -1,12 +1,13 @@
 /* ============================================================
    main.js — Index page
-   Shows latest 4 posts dynamically. Never edit HTML for posts.
+   Blog: shows up to 6 starred posts (fallback = latest 6).
+   Experience: loaded from Supabase, falls back to hardcoded.
    ============================================================ */
 
 document.addEventListener('DOMContentLoaded', async () => {
   initNav();
   initSmoothScroll();
-  await loadBlog();
+  await Promise.all([loadBlog(), loadExperience()]);
 });
 
 /* ── NAV ─────────────────────────────────────────────────── */
@@ -66,11 +67,13 @@ async function loadBlog() {
 
   showSkeleton(featured, grid);
 
-  const posts = await fetchPosts(4); // only need 4 for index
+  // Try starred posts first; fall back to latest 6
+  let posts = await fetchFeaturedPosts();
+  if (!posts.length) posts = await fetchPosts(6);
 
   if (!posts.length) {
     if (featured) featured.style.display = 'none';
-    grid.innerHTML = `<div class="blog-empty">No posts yet — <a href="/admin">write your first one</a>.</div>`;
+    grid.innerHTML = `<div class="blog-empty">No posts yet — <a href="admin/index.html">write your first one</a>.</div>`;
     return;
   }
 
@@ -80,7 +83,22 @@ async function loadBlog() {
 }
 
 /* ── FETCH POSTS ─────────────────────────────────────────── */
-async function fetchPosts(limit = 20, offset = 0) {
+async function fetchFeaturedPosts() {
+  const sb = getSupabase();
+  if (!sb) return [];
+  try {
+    const { data, error } = await sb
+      .from('posts')
+      .select('id, title, slug, category, excerpt, created_at, featured')
+      .eq('featured', true)
+      .order('created_at', { ascending: false })
+      .limit(6);
+    if (!error && data) return data;
+  } catch(e) { console.warn('Featured fetch failed:', e); }
+  return [];
+}
+
+async function fetchPosts(limit = 6, offset = 0) {
   const sb = getSupabase();
 
   // Try Supabase
@@ -88,7 +106,7 @@ async function fetchPosts(limit = 20, offset = 0) {
     try {
       const { data, error } = await sb
         .from('posts')
-        .select('id, title, slug, category, excerpt, created_at')
+        .select('id, title, slug, category, excerpt, created_at, featured')
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1);
       if (!error && data) return data;
@@ -110,6 +128,66 @@ async function loadStaticPosts() {
     } catch(_) {}
   }
   return posts;
+}
+
+/* ── EXPERIENCE LOADER ───────────────────────────────────── */
+const STATIC_EXPERIENCE = [
+  {
+    date_range: '2025 – Present',
+    role: 'Research Intern',
+    org: 'IVCCE — Indorama Ventures Center for Clean Energy, Plaksha',
+    description: 'Working on a smart nudging system to reduce household energy consumption. Researching how data-driven behavioural interventions can create measurable impact at scale — without requiring users to change habits by willpower alone. Also led outreach for the IVCCE Energy Conference, building sponsor and participant pipelines across student, academic, and industry networks.'
+  },
+  {
+    date_range: '2024 – 2025',
+    role: 'Outreach & Events Leadership',
+    org: 'Plaksha University · Fitoor, Eklavya & IVCCE Energy Conference',
+    description: 'Drove outreach for Fitoor, Eklavya, and the IVCCE Energy Conference, serving as Outreach Head for Eklavya and the Energy Conference. Across the three events, our teams reached 1,500+ people and brought in 800+ participants — experience that sharpened my communication, stakeholder mapping, follow-up discipline, and ability to turn interest into attendance.'
+  },
+  {
+    date_range: '2025',
+    role: 'Management Fellow — YTS Program',
+    org: 'Plaksha University',
+    description: 'Worked as a management fellow for the Young Technology Scholar program at Plaksha. Helped coordinate and run the program, developing skills in team management, communication, and institutional operations alongside technical studies.'
+  },
+  {
+    date_range: '2024 – Present',
+    role: 'B.Tech Engineering Student',
+    org: 'Plaksha University, Chandigarh',
+    description: 'Second-year engineering student focused on applying CS and AI to real-world systems. Building IoT projects, learning ML algorithms independently, and seeking every opportunity to apply theory to practice.'
+  }
+];
+
+async function loadExperience() {
+  const timeline = document.getElementById('expTimeline');
+  if (!timeline) return;
+
+  let entries = [];
+  const sb = getSupabase();
+
+  if (sb) {
+    try {
+      const { data, error } = await sb
+        .from('experience')
+        .select('*')
+        .order('sort_order', { ascending: true });
+      if (!error && data && data.length) entries = data;
+    } catch(e) { console.warn('Experience fetch failed:', e); }
+  }
+
+  // Fall back to static data if DB has nothing
+  if (!entries.length) entries = STATIC_EXPERIENCE;
+
+  timeline.innerHTML = entries.map(exp => `
+    <div class="tl-item">
+      <div class="tl-date">${exp.date_range}</div>
+      <div>
+        <div class="tl-role">${exp.role}</div>
+        <div class="tl-org">${exp.org}</div>
+        <p class="tl-desc">${exp.description}</p>
+      </div>
+    </div>
+  `).join('');
 }
 
 /* ── RENDER ──────────────────────────────────────────────── */
@@ -175,3 +253,4 @@ function readTime(text) {
   const w = (text || '').replace(/<[^>]+>/g,'').split(' ').length;
   return Math.max(1, Math.round(w / 40)) + ' min';
 }
+

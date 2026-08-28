@@ -262,35 +262,8 @@
     <p class="section-label">Where I've been</p>
     <h2 class="section-title">Experience</h2>
     <div class="section-rule"></div>
-    <div class="timeline">
-
-      <div class="tl-item">
-        <div class="tl-date">2025 – Present</div>
-        <div>
-          <div class="tl-role">Research Intern</div>
-          <div class="tl-org">IVCCE — Indorama Ventures Center for Clean Energy , Plaksha</div>
-          <p class="tl-desc">Working on a smart nudging system to reduce household energy consumption. Researching how data-driven behavioural interventions can create measurable impact at scale — without requiring users to change habits by willpower alone.</p>
-        </div>
-      </div>
-
-      <div class="tl-item">
-        <div class="tl-date">2025</div>
-        <div>
-          <div class="tl-role">Management Fellow — YTS Program</div>
-          <div class="tl-org">Plaksha University</div>
-          <p class="tl-desc">Worked as a management fellow for the Young Technology Scholar program at Plaksha. Helped coordinate and run the program, developing skills in team management, communication, and institutional operations alongside technical studies.</p>
-        </div>
-      </div>
-
-      <div class="tl-item">
-        <div class="tl-date">2024 – Present</div>
-        <div>
-          <div class="tl-role">B.Tech Engineering Student</div>
-          <div class="tl-org">Plaksha University, Chandigarh</div>
-          <p class="tl-desc">Second-year engineering student focused on applying CS and AI to real-world systems. Building IoT projects, learning ML algorithms independently, and seeking every opportunity to apply theory to practice.</p>
-        </div>
-      </div>
-
+    <div class="timeline" id="expTimeline">
+      <!-- Populated by main.js from Supabase (falls back to static data) -->
     </div>
   </div>
 </section>
@@ -320,7 +293,7 @@
     <!-- VIEW ALL + ADMIN -->
     <div style="margin-top:2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
       <a href="blog/index.html" class="btn-outline" style="text-decoration:none;">View all posts →</a>
-      <a href="/admin" style="font-family:var(--mono);font-size:11px;color:var(--gray-400);text-decoration:none;letter-spacing:0.06em;">Admin ↗</a>
+      <a href="admin/index.html" style="font-family:var(--mono);font-size:11px;color:var(--gray-400);text-decoration:none;letter-spacing:0.06em;">Admin ↗</a>
     </div>
   </div>
 </section>
@@ -353,7 +326,7 @@
   </div>
 </section>
 
-<!-- blog modal removed — use /admin to post -->
+<!-- blog modal removed — use admin/index.html to post -->
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabase-config.js"></script>

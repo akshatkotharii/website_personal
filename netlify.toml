@@ -1,0 +1,79 @@
+# ============================================================
+# netlify.toml — Security + performance config
+# ============================================================
+
+[build]
+  publish = "."
+
+# ── SECURITY HEADERS (applied to all pages) ─────────────────
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Prevent clickjacking
+    X-Frame-Options = "DENY"
+    # Prevent MIME sniffing
+    X-Content-Type-Options = "nosniff"
+    # XSS protection (legacy browsers)
+    X-XSS-Protection = "1; mode=block"
+    # Don't send referrer to external sites
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    # Permissions policy - disable features you don't use
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=()"
+    # Content Security Policy
+    # - default: only your own origin
+    # - scripts: self + cdn.jsdelivr.net (Supabase SDK) + Google Fonts
+    # - styles: self + Google Fonts
+    # - connects: self + your Supabase project (set SUPABASE_HOST below)
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.supabase.co; frame-ancestors 'none';"
+    # HSTS - force HTTPS for 1 year
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains"
+
+# ── CACHE HEADERS ────────────────────────────────────────────
+# Images: cache for 1 year (they don't change often)
+[[headers]]
+  for = "/images/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# CSS/JS: cache for 1 week
+[[headers]]
+  for = "/css/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+
+[[headers]]
+  for = "/js/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+
+# ── REDIRECTS ─────────────────────────────────────────────────
+# Keep /admin working on Netlify too
+[[redirects]]
+  from = "/admin"
+  to = "/admin/index.html"
+  status = 200   # 200 = silently serve, no URL change in browser
+
+# Block common attack paths
+[[redirects]]
+  from = "/wp-admin/*"
+  to = "/404.html"
+  status = 404
+
+[[redirects]]
+  from = "/wp-login.php"
+  to = "/404.html"
+  status = 404
+
+[[redirects]]
+  from = "/.env"
+  to = "/404.html"
+  status = 404
+
+[[redirects]]
+  from = "/config*"
+  to = "/404.html"
+  status = 404
+
+# ── RATE LIMITING (Netlify Pro feature - free tier gets basic DDoS via CDN)
+# Netlify's CDN inherently protects against volumetric DDoS.
+# For extra rate limiting on the admin, use Netlify Edge Functions (see /netlify/edge-functions/)

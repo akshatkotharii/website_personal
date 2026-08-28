@@ -38,3 +38,87 @@ function getSupabase() {
   }
   return window._sb;
 }
+
+// ── DYNAMIC NEWSLETTER SIGNUP WIDGET INJECTION ──
+document.addEventListener('DOMContentLoaded', () => {
+  // Do not show on admin page
+  if (window.location.pathname.includes('/admin')) return;
+
+  const widget = document.createElement('div');
+  widget.className = 'newsletter-widget';
+  widget.innerHTML = `
+    <button class="newsletter-btn" id="nlBtn" style="display: none;">
+      <span>Subscribe ✉</span>
+    </button>
+    <div class="newsletter-card open" id="nlCard">
+      <button class="newsletter-close" id="nlClose" title="Close newsletter signup">×</button>
+      <h4>Inside Akshat’s Brain</h4>
+      <p>Subscribe to get new blog posts directly in your inbox.</p>
+      <form class="newsletter-form" id="nlForm">
+        <input type="email" class="newsletter-input" id="nlEmail" placeholder="your@email.com" required autocomplete="email">
+        <button type="submit" class="newsletter-submit">Join</button>
+      </form>
+      <div class="newsletter-msg" id="nlMsg"></div>
+    </div>
+  `;
+  document.body.appendChild(widget);
+
+  const nlBtn = document.getElementById('nlBtn');
+  const nlCard = document.getElementById('nlCard');
+  const nlClose = document.getElementById('nlClose');
+  const nlForm = document.getElementById('nlForm');
+  const nlEmail = document.getElementById('nlEmail');
+  const nlMsg = document.getElementById('nlMsg');
+
+  nlClose.addEventListener('click', () => {
+    nlCard.classList.remove('open');
+    nlBtn.style.display = 'flex';
+  });
+
+  nlBtn.addEventListener('click', () => {
+    nlBtn.style.display = 'none';
+    nlCard.classList.add('open');
+  });
+
+  nlForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = nlEmail.value.trim();
+    if (!email) return;
+
+    nlMsg.textContent = 'Subscribing...';
+    nlMsg.className = 'newsletter-msg';
+
+    const sb = getSupabase();
+    if (!sb) {
+      nlMsg.textContent = 'Error: Supabase not configured.';
+      nlMsg.classList.add('error');
+      return;
+    }
+
+    try {
+      const { error } = await sb.from('subscribers').insert([{ email }]);
+      if (error) {
+        if (error.code === '23505') { // Unique constraint violation
+          nlMsg.textContent = 'Already subscribed!';
+          nlMsg.classList.add('success');
+        } else {
+          nlMsg.textContent = error.message;
+          nlMsg.classList.add('error');
+        }
+      } else {
+        nlMsg.textContent = 'Success! Thank you.';
+        nlMsg.classList.add('success');
+        nlEmail.value = '';
+        setTimeout(() => {
+          nlCard.classList.remove('open');
+          nlBtn.style.display = 'flex';
+          nlMsg.textContent = '';
+        }, 2000);
+      }
+    } catch(err) {
+      nlMsg.textContent = 'Failed to subscribe.';
+      nlMsg.classList.add('error');
+    }
+  });
+});
+

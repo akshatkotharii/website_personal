@@ -177,7 +177,7 @@ async function loadPosts() {
   }
 
   if (!posts.length) {
-    list.innerHTML = `<div class="blog-notice">No posts${activeFilter!=='all'?' in this category':''} yet — <a href="/admin">write one</a>.</div>`;
+    list.innerHTML = `<div class="blog-notice">No posts${activeFilter!=='all'?' in this category':''} yet — <a href="../admin/index.html">write one</a>.</div>`;
     pag.style.display = 'none';
     return;
   }

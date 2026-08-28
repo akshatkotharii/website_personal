@@ -1,0 +1,19 @@
+# Sensitive config — never commit real keys
+.env
+.env.local
+.env.production
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# The dashboard folder name is security through obscurity.
+# Keep it out of public READMEs but it's fine in .gitignore
+# (attackers scan common paths, not your specific repo gitignore)

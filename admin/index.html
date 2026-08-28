@@ -10,6 +10,7 @@
   <!-- Supabase SDK + shared config -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../js/supabase-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -199,6 +200,51 @@
       border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft);
     }
     .field-textarea { min-height: 180px; resize: vertical; line-height: 1.65; font-size: 13px; }
+    .editor-tools {
+      display: flex; flex-wrap: wrap; gap: 6px; padding: 8px;
+      border: 1.5px solid var(--gray-200); border-bottom: 0;
+      border-radius: 8px 8px 0 0; background: var(--gray-50);
+    }
+    .tool-btn, .tool-select, .tool-color {
+      min-width: 32px; height: 30px; border: 1px solid var(--gray-200);
+      border-radius: 6px; background: var(--white); color: var(--black);
+      font-family: var(--sans); font-size: 12px; cursor: pointer;
+    }
+    .tool-btn:hover, .tool-select:hover { border-color: var(--accent); color: var(--accent); }
+    .tool-select { padding: 0 8px; width: auto; }
+    .tool-color { width: 36px; padding: 3px; }
+    .rich-editor {
+      min-height: 260px; padding: 14px; border: 1.5px solid var(--gray-200);
+      border-radius: 0 0 8px 8px; background: var(--white); outline: none;
+      color: var(--black); font-size: 14px; line-height: 1.75; overflow-wrap: anywhere;
+    }
+    .rich-editor:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .rich-editor h2 { font-family: var(--serif); font-size: 26px; line-height: 1.2; margin: 1.4rem 0 0.6rem; }
+    .rich-editor h3 { font-size: 17px; margin: 1.2rem 0 0.4rem; }
+    .rich-editor p { margin-bottom: 0.9rem; }
+    .rich-editor blockquote { border-left: 3px solid var(--accent); margin: 1rem 0; padding: 0.4rem 1rem; color: var(--gray-600); font-family: var(--serif); font-size: 19px; }
+    .rich-editor img { max-width: 100%; height: auto; border-radius: 8px; margin: 1rem 0; display: block; }
+    .rich-editor:empty::before { content: attr(data-placeholder); color: var(--gray-400); pointer-events: none; }
+    .editor-help { font-family: var(--mono); font-size: 10.5px; color: var(--gray-400); margin-top: 6px; line-height: 1.5; }
+    .field-textarea.editor-source { display: none; margin-top: 10px; min-height: 120px; font-family: var(--mono); }
+    .field-textarea.editor-source.show { display: block; }
+
+    /* ── IMG GRID (from Word image tables) ── */
+    .rich-editor .img-grid {
+      display: grid; gap: 0.75rem; margin: 1.5rem 0;
+    }
+    .rich-editor .img-grid[data-cols="1"] { grid-template-columns: 1fr; }
+    .rich-editor .img-grid[data-cols="2"] { grid-template-columns: repeat(2, 1fr); }
+    .rich-editor .img-grid[data-cols="3"] { grid-template-columns: repeat(3, 1fr); }
+    .rich-editor .img-grid[data-cols="4"] { grid-template-columns: repeat(4, 1fr); }
+    .rich-editor .img-grid-cell { margin: 0; }
+    .rich-editor .img-grid-cell img { width: 100%; height: auto; border-radius: 8px; margin: 0; object-fit: contain; }
+    .rich-editor .img-grid-cell figcaption { font-family: var(--mono); font-size: 10px; color: var(--gray-400); text-align: center; margin-top: 4px; }
+
+    /* ── DATA TABLES (from Word text/data tables) ── */
+    .rich-editor table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 13px; }
+    .rich-editor th, .rich-editor td { padding: 8px 12px; border: 1px solid var(--gray-200); text-align: left; vertical-align: top; }
+    .rich-editor th { background: var(--gray-50); font-weight: 600; font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gray-600); }
 
     .write-actions { display: flex; gap: 8px; margin-top: 1.25rem; }
     .btn-publish-main {
@@ -218,7 +264,7 @@
 
     /* ── STATS ROW ── */
     .stats-row {
-      display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem;
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem;
     }
     .stat-card {
       background: var(--white); border: 1px solid var(--gray-100);
@@ -307,6 +353,10 @@
         <div class="stat-label">Last post</div>
         <div class="stat-val" style="font-size:16px;padding-top:6px;" id="statLast">—</div>
       </div>
+      <div class="stat-card">
+        <div class="stat-label">Starred posts</div>
+        <div class="stat-val" id="statStarred">—</div>
+      </div>
     </div>
   </div>
 
@@ -334,6 +384,75 @@
         </div>
         <div class="panel-body">
           <div id="pendingList"><div class="empty-state"><p>No pending comments.</p></div></div>
+        </div>
+      </div>
+
+      <!-- EXPERIENCE MANAGEMENT -->
+      <div class="panel" style="margin-top:1.5rem;">
+        <div class="panel-header">
+          <span class="panel-title">Experience Timeline</span>
+          <span class="panel-count" id="expCount">0 entries</span>
+        </div>
+        <div class="panel-body">
+          <div class="post-list" id="expList" style="margin-bottom: 1.5rem;">
+            <div class="empty-state"><p>No experience entries.</p></div>
+          </div>
+          <div style="border-top: 1px solid var(--gray-100); padding-top: 1.5rem;">
+            <h4 style="font-family:var(--serif);font-size:16px;margin-bottom:1rem;" id="expFormTitle">Add Experience</h4>
+            <input type="hidden" id="expEditId">
+            <div class="field-group">
+              <label class="field-label">Date Range *</label>
+              <input type="text" class="field-input" id="expDateRange" placeholder="e.g. 2025 – Present">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Role *</label>
+              <input type="text" class="field-input" id="expRole" placeholder="e.g. Research Intern">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Organization *</label>
+              <input type="text" class="field-input" id="expOrg" placeholder="e.g. Plaksha University">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Description</label>
+              <textarea class="field-textarea" id="expDesc" style="min-height:80px;" placeholder="What did you do?"></textarea>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Sort Order</label>
+              <input type="number" class="field-input" id="expSortOrder" value="0">
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn-publish-main" id="saveExpBtn" style="padding:8px 12px;font-size:12px;">Save Entry</button>
+              <button class="btn-sm ghost" id="clearExpBtn" style="display:none;" onclick="clearExpForm()">Cancel</button>
+            </div>
+            <div class="publish-status" id="expStatus"></div>
+          </div>
+        </div>
+      <!-- NEWSLETTER SUBSCRIBERS -->
+      <div class="panel" style="margin-top:1.5rem;">
+        <div class="panel-header">
+          <span class="panel-title">Mailing List</span>
+          <span class="panel-count" id="subCount">0 subscribers</span>
+        </div>
+        <div class="panel-body">
+          <!-- Settings Form -->
+          <details style="margin-bottom: 1.5rem; border-bottom: 1px solid var(--gray-100); padding-bottom: 1rem;">
+            <summary style="font-size: 13px; font-weight: 500; cursor: pointer; color: var(--accent); margin-bottom: 8px;">Configure Email Provider (Resend)</summary>
+            <div class="field-group" style="margin-top: 8px;">
+              <label class="field-label">Resend API Key</label>
+              <input type="password" class="field-input" id="resendApiKey" placeholder="re_xxxxxxxxx">
+            </div>
+            <div class="field-group">
+              <label class="field-label">From Email *</label>
+              <input type="text" class="field-input" id="resendFromEmail" placeholder="Akshat Kothari &lt;onboarding@resend.dev&gt;">
+            </div>
+            <button class="btn-sm primary" id="saveMailSettingsBtn" style="padding: 6px 12px; font-size: 11px;">Save API Settings</button>
+            <div class="publish-status" id="mailSettingsStatus"></div>
+          </details>
+
+          <!-- Subscribers List -->
+          <div class="post-list" id="subList" style="max-height: 250px; overflow-y: auto;">
+            <div class="empty-state"><p>No subscribers yet.</p></div>
+          </div>
         </div>
       </div>
     </div>
@@ -367,8 +486,38 @@
             <input type="text" class="field-input" id="fExcerpt" placeholder="One compelling sentence…">
           </div>
           <div class="field-group">
-            <label class="field-label">Content * (plain text or HTML)</label>
-            <textarea class="field-textarea" id="fContent" placeholder="Write freely. Separate paragraphs with a blank line.&#10;&#10;You can also use basic HTML: &lt;h2&gt;, &lt;strong&gt;, &lt;em&gt;, &lt;blockquote&gt;"></textarea>
+            <label class="field-label">Content *</label>
+            <div class="editor-tools" aria-label="Blog editor toolbar">
+              <select class="tool-select" id="formatBlock" title="Text style">
+                <option value="p">Body</option>
+                <option value="h2">Heading</option>
+                <option value="h3">Subheading</option>
+                <option value="blockquote">Quote</option>
+              </select>
+              <select class="tool-select" id="fontName" title="Font">
+                <option value="Inter">Inter</option>
+                <option value="Instrument Serif">Serif</option>
+                <option value="Georgia">Georgia</option>
+                <option value="JetBrains Mono">Mono</option>
+              </select>
+              <input class="tool-color" type="color" id="fontColor" value="#0F0F0F" title="Text color">
+              <button class="tool-btn" type="button" data-cmd="bold" title="Bold"><strong>B</strong></button>
+              <button class="tool-btn" type="button" data-cmd="italic" title="Italic"><em>I</em></button>
+              <button class="tool-btn" type="button" data-cmd="insertUnorderedList" title="Bulleted list">•</button>
+              <button class="tool-btn" type="button" data-cmd="insertOrderedList" title="Numbered list">1.</button>
+              <button class="tool-btn" type="button" id="linkBtn" title="Add link">↗</button>
+              <button class="tool-btn" type="button" id="imageUrlBtn" title="Insert image URL">Img</button>
+              <button class="tool-btn" type="button" id="toggleHtmlBtn" title="Edit HTML">HTML</button>
+            </div>
+            <div class="rich-editor" id="richEditor" contenteditable="true" data-placeholder="Write your blog here. Drag images in, use toolbar, or import a Word doc below."></div>
+            <textarea class="field-textarea editor-source" id="fContent" placeholder="HTML source"></textarea>
+            <div class="editor-help">Import `.docx`, upload image files, paste image URLs, or edit HTML directly. Images from your computer are embedded into post HTML.</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Import visual content</label>
+            <input type="file" class="field-input" id="docImport" accept=".docx">
+            <div style="height:8px"></div>
+            <input type="file" class="field-input" id="imageUpload" accept="image/*" multiple>
           </div>
           <input type="hidden" id="fEditId">
           <div class="write-actions">
@@ -418,6 +567,9 @@ sb && sb.auth.onAuthStateChange((event, session) => {
     resetActivityTimer();
     loadPosts();
     loadPendingComments();
+    loadExperience();
+    loadSubscribers();
+    loadMailSettings();
   } else {
     document.getElementById('loginScreen').style.display = 'flex';
     document.getElementById('adminShell').style.display  = 'none';
@@ -499,6 +651,8 @@ function renderPostList(posts) {
           </div>
         </div>
         <div class="post-item-actions">
+          <button class="icon-btn" title="Broadcast to subscribers" style="color:var(--accent);border-color:var(--accent)" onclick="broadcastPost(${p.id}, '${p.title.replace(/'/g,"\\'")}', '${p.slug}')">✉</button>
+          <button class="icon-btn" title="${p.featured ? 'Unstar post' : 'Star post'}" style="color:${p.featured ? '#EAB308' : 'inherit'};border-color:${p.featured ? '#EAB308' : 'inherit'}" onclick="toggleStar(${p.id}, ${p.featured || false})">${p.featured ? '★' : '☆'}</button>
           <button class="icon-btn" title="View post" onclick="viewPost('${p.slug}')">↗</button>
           <button class="icon-btn" title="Edit" onclick="editPost(${p.id})">✎</button>
           <button class="icon-btn del" title="Delete" onclick="deletePost(${p.id}, '${p.title.replace(/'/g,"\\'")}')">✕</button>
@@ -507,6 +661,28 @@ function renderPostList(posts) {
     `;
   }).join('');
 }
+
+async function toggleStar(id, currentFeatured) {
+  if (!sb) return;
+
+  if (!currentFeatured) {
+    // Count how many are currently starred
+    const { data: starred, error } = await sb.from('posts').select('id').eq('featured', true);
+    if (!error && starred && starred.length >= 6) {
+      alert('Maximum 6 starred posts allowed. Unstar another post first.');
+      return;
+    }
+  }
+
+  const { error } = await sb.from('posts').update({ featured: !currentFeatured }).eq('id', id);
+  if (error) {
+    console.error(error);
+    alert('Failed to toggle star status.');
+  } else {
+    loadPosts();
+  }
+}
+window.toggleStar = toggleStar;
 
 function updateStats(posts) {
   document.getElementById('statTotal').textContent = posts.length;
@@ -525,12 +701,239 @@ function updateStats(posts) {
   } else {
     document.getElementById('statLast').textContent = '—';
   }
+
+  const starred = posts.filter(p => p.featured);
+  const starredEl = document.getElementById('statStarred');
+  if (starredEl) starredEl.textContent = `${starred.length}/6`;
+}
+
+// ── RICH BLOG EDITOR ───────────────────────────────────────
+const richEditor = document.getElementById('richEditor');
+const sourceEditor = document.getElementById('fContent');
+
+function focusEditor() {
+  richEditor.focus();
+}
+
+function runEditorCommand(command, value = null) {
+  focusEditor();
+  document.execCommand(command, false, value);
+  syncEditorToSource();
+}
+
+function syncEditorToSource() {
+  sourceEditor.value = richEditor.innerHTML.trim();
+}
+
+function syncSourceToEditor() {
+  richEditor.innerHTML = sourceEditor.value.trim();
+}
+
+function getEditorContent() {
+  if (sourceEditor.classList.contains('show')) syncSourceToEditor();
+  syncEditorToSource();
+  return sourceEditor.value.trim();
+}
+
+function setEditorContent(html = '') {
+  richEditor.innerHTML = html;
+  sourceEditor.value = html;
+}
+
+function insertEditorHtml(html) {
+  focusEditor();
+  document.execCommand('insertHTML', false, html);
+  syncEditorToSource();
+}
+
+document.querySelectorAll('[data-cmd]').forEach(btn => {
+  btn.addEventListener('click', () => runEditorCommand(btn.dataset.cmd));
+});
+
+document.getElementById('formatBlock').addEventListener('change', e => {
+  runEditorCommand('formatBlock', `<${e.target.value}>`);
+});
+
+document.getElementById('fontName').addEventListener('change', e => {
+  runEditorCommand('fontName', e.target.value);
+});
+
+document.getElementById('fontColor').addEventListener('input', e => {
+  runEditorCommand('foreColor', e.target.value);
+});
+
+document.getElementById('linkBtn').addEventListener('click', () => {
+  const url = prompt('Link URL');
+  if (!url) return;
+  runEditorCommand('createLink', url);
+});
+
+document.getElementById('imageUrlBtn').addEventListener('click', () => {
+  const url = prompt('Image URL');
+  if (!url) return;
+  const alt = prompt('Alt text') || '';
+  insertEditorHtml(`<figure><img src="${escAttr(url)}" alt="${escAttr(alt)}"><figcaption>${escHtml(alt)}</figcaption></figure>`);
+});
+
+document.getElementById('toggleHtmlBtn').addEventListener('click', () => {
+  if (sourceEditor.classList.contains('show')) {
+    syncSourceToEditor();
+    sourceEditor.classList.remove('show');
+  } else {
+    syncEditorToSource();
+    sourceEditor.classList.add('show');
+  }
+});
+
+richEditor.addEventListener('input', syncEditorToSource);
+sourceEditor.addEventListener('input', () => {
+  if (sourceEditor.classList.contains('show')) syncSourceToEditor();
+});
+
+richEditor.addEventListener('paste', e => {
+  const files = [...(e.clipboardData?.files || [])].filter(file => file.type.startsWith('image/'));
+  if (!files.length) return;
+  e.preventDefault();
+  files.forEach(insertImageFile);
+});
+
+richEditor.addEventListener('drop', e => {
+  const files = [...(e.dataTransfer?.files || [])].filter(file => file.type.startsWith('image/'));
+  if (!files.length) return;
+  e.preventDefault();
+  files.forEach(insertImageFile);
+});
+
+document.getElementById('imageUpload').addEventListener('change', e => {
+  [...e.target.files].forEach(insertImageFile);
+  e.target.value = '';
+});
+
+document.getElementById('docImport').addEventListener('change', async e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  setStatus('Importing document...');
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const result = await mammoth.convertToHtml(
+      { arrayBuffer },
+      {
+        convertImage: mammoth.images.inline(async element => ({
+          src: await element.read('base64').then(imageBuffer => `data:${element.contentType};base64,${imageBuffer}`)
+        }))
+      }
+    );
+    const processed = postProcessDocx(result.value);
+    setEditorContent(processed);
+    setStatus('Document imported. Review formatting before publishing.', 'ok');
+  } catch (err) {
+    console.error(err);
+    setStatus('Could not import document. Try a .docx file.', 'err');
+  }
+  e.target.value = '';
+});
+
+/**
+ * Post-process Mammoth HTML:
+ * - Image-only tables  → <div class="img-grid" data-cols="N"> with <figure class="img-grid-cell"> cells
+ * - Data/text tables   → kept as <table> (styled via CSS)
+ * - All img tags       → strip inline width/height attributes that break responsive layout
+ */
+function postProcessDocx(html) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+
+  // 1. Fix all images: remove hard-coded width/height from Mammoth
+  doc.querySelectorAll('img').forEach(img => {
+    img.removeAttribute('width');
+    img.removeAttribute('height');
+    img.style.removeProperty('width');
+    img.style.removeProperty('height');
+  });
+
+  // 2. Detect and convert image-only tables
+  doc.querySelectorAll('table').forEach(table => {
+    const rows = [...table.querySelectorAll('tr')];
+    if (!rows.length) return;
+
+    // Count columns from first row
+    const firstRowCells = [...rows[0].querySelectorAll('td, th')];
+    const numCols = firstRowCells.length;
+
+    // Check if every cell in every row contains ONLY an image (plus optional text for caption)
+    const allCells = [...table.querySelectorAll('td, th')];
+    const isImageGrid = allCells.every(cell => {
+      const imgs = cell.querySelectorAll('img');
+      if (!imgs.length) return false;
+      // Allow: img + optional text nodes / <p> wrappers
+      // Disallow: multiple images in one cell, or non-img meaningful content
+      if (imgs.length > 1) return false;
+      // Strip all img elements from a clone and see if any meaningful text is left
+      const clone = cell.cloneNode(true);
+      clone.querySelectorAll('img').forEach(i => i.remove());
+      const textLeft = clone.textContent.trim();
+      // If remaining text is long, treat as data table
+      if (textLeft.length > 80) return false;
+      return true;
+    });
+
+    if (!isImageGrid) return; // leave data tables alone
+
+    // Build img-grid div
+    const grid = doc.createElement('div');
+    grid.className = 'img-grid';
+    grid.setAttribute('data-cols', String(numCols));
+
+    allCells.forEach(cell => {
+      const img = cell.querySelector('img');
+      if (!img) return;
+
+      // Gather caption text (any text remaining after removing the img)
+      const cellClone = cell.cloneNode(true);
+      cellClone.querySelectorAll('img').forEach(i => i.remove());
+      const caption = cellClone.textContent.trim();
+
+      const figure = doc.createElement('figure');
+      figure.className = 'img-grid-cell';
+      figure.appendChild(img.cloneNode(true));
+
+      if (caption) {
+        const figcap = doc.createElement('figcaption');
+        figcap.textContent = caption;
+        figure.appendChild(figcap);
+      }
+      grid.appendChild(figure);
+    });
+
+    table.replaceWith(grid);
+  });
+
+  // Return body innerHTML
+  return doc.body.innerHTML;
+}
+
+
+
+function insertImageFile(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    insertEditorHtml(`<figure><img src="${reader.result}" alt="${escAttr(file.name)}"><figcaption>${escHtml(file.name)}</figcaption></figure>`);
+  };
+  reader.readAsDataURL(file);
+}
+
+function escHtml(s = '') {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function escAttr(s = '') {
+  return escHtml(s).replace(/'/g,'&#39;');
 }
 
 // ── PUBLISH / EDIT ──────────────────────────────────────────
 document.getElementById('publishBtn').addEventListener('click', async () => {
   const title    = document.getElementById('fTitle').value.trim();
-  const content  = document.getElementById('fContent').value.trim();
+  const content  = getEditorContent();
   const category = document.getElementById('fCategory').value;
   const excerpt  = document.getElementById('fExcerpt').value.trim();
   const editId   = document.getElementById('fEditId').value;
@@ -599,12 +1002,11 @@ document.getElementById('publishBtn').addEventListener('click', async () => {
 
 async function loadPendingComments() {
   if (!sb) return;
-  const { data: comments } = await sb
+  const { data: comments , error} = await sb
     .from('comments')
-    .select('id, name, message, created_at, post_id, posts(title,slug)')
+    .select(`id,name,message,created_at,approved,post_id,posts(title, slug)`)
     .eq('approved', false)
     .order('created_at', { ascending: false });
-
   const el = document.getElementById('pendingCount');
   const list = document.getElementById('pendingList');
   if (!comments || !comments.length) {
@@ -636,7 +1038,9 @@ async function approveComment(id) {
   await sb.from('comments').update({ approved: true }).eq('id', id);
   document.getElementById('comment-'+id)?.remove();
   await loadPendingComments();
-  await loadPosts();}
+  await loadPosts();
+
+}
 
 async function deleteComment(id) {
   if (!confirm('Delete?')) return;
@@ -644,7 +1048,9 @@ async function deleteComment(id) {
   await sb.from('comments').delete().eq('id', id);
   document.getElementById('comment-'+id)?.remove();
   await loadPendingComments();
-  await loadPosts();}
+  await loadPosts();
+
+}
 
 async function editPost(id) {
   const { data, error } = await sb.from('posts').select('*').eq('id', id).single();
@@ -653,8 +1059,7 @@ async function editPost(id) {
   document.getElementById('fTitle').value    = data.title;
   document.getElementById('fCategory').value = data.category || 'personal';
   document.getElementById('fExcerpt').value  = data.excerpt || '';
-  // Show HTML or plain content
-  document.getElementById('fContent').value  = data.content || '';
+  setEditorContent(data.content || '');
   document.getElementById('fEditId').value   = id;
   document.getElementById('writeTitle').textContent = 'Edit post';
   document.getElementById('publishBtn').textContent = 'Save changes →';
@@ -679,9 +1084,11 @@ function viewPost(slug) {
 document.getElementById('clearBtn').addEventListener('click', clearForm);
 
 function clearForm() {
-  ['fTitle','fContent','fExcerpt','fEditId'].forEach(id => {
+  ['fTitle','fExcerpt','fEditId'].forEach(id => {
     document.getElementById(id).value = '';
   });
+  setEditorContent('');
+  sourceEditor.classList.remove('show');
   document.getElementById('fCategory').value      = 'personal';
   document.getElementById('writeTitle').textContent = 'New post';
   document.getElementById('publishBtn').textContent = 'Publish →';
@@ -693,6 +1100,299 @@ function setStatus(msg, type='') {
   el.textContent = msg;
   el.className   = 'publish-status' + (type ? ` ${type}` : '');
 }
+
+// ── EXPERIENCE CRUD ──────────────────────────────────────────
+async function loadExperience() {
+  if (!sb) return;
+  const { data: expList, error } = await sb
+    .from('experience')
+    .select('*')
+    .order('sort_order', { ascending: true });
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  const list = document.getElementById('expList');
+  const countEl = document.getElementById('expCount');
+  if (countEl) countEl.textContent = `${expList.length} entr${expList.length !== 1 ? 'ies' : 'y'}`;
+
+  if (!expList.length) {
+    list.innerHTML = '<div class="empty-state"><p>No experience entries.</p></div>';
+    return;
+  }
+
+  list.innerHTML = expList.map(exp => {
+    return `
+      <div class="post-item" id="exp-${exp.id}">
+        <div class="post-item-info">
+          <div class="post-item-title">${exp.role} — ${exp.org}</div>
+          <div class="post-item-meta">
+            <span>${exp.date_range}</span>
+            <span>Order: ${exp.sort_order}</span>
+          </div>
+        </div>
+        <div class="post-item-actions">
+          <button class="icon-btn" title="Edit" onclick="editExp(${exp.id})">✎</button>
+          <button class="icon-btn del" title="Delete" onclick="deleteExp(${exp.id}, '${exp.role.replace(/'/g,"\\'")}')">✕</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+document.getElementById('saveExpBtn').addEventListener('click', async () => {
+  const dateRange = document.getElementById('expDateRange').value.trim();
+  const role = document.getElementById('expRole').value.trim();
+  const org = document.getElementById('expOrg').value.trim();
+  const desc = document.getElementById('expDesc').value.trim();
+  const sortOrder = parseInt(document.getElementById('expSortOrder').value) || 0;
+  const editId = document.getElementById('expEditId').value;
+  const btn = document.getElementById('saveExpBtn');
+
+  if (!dateRange || !role || !org) {
+    setExpStatus('Date Range, Role, and Org are required.', 'err');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+  setExpStatus('');
+
+  const payload = {
+    date_range: dateRange,
+    role: role,
+    org: org,
+    description: desc,
+    sort_order: sortOrder
+  };
+
+  let error;
+  if (editId) {
+    const res = await sb.from('experience').update(payload).eq('id', editId);
+    error = res.error;
+  } else {
+    const res = await sb.from('experience').insert([payload]);
+    error = res.error;
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Save Entry';
+
+  if (error) {
+    console.error('Supabase error:', error);
+    setExpStatus('Error: ' + error.message, 'err');
+  } else {
+    setExpStatus(editId ? '✓ Entry updated' : '✓ Saved', 'ok');
+    clearExpForm();
+    loadExperience();
+  }
+});
+
+function setExpStatus(msg, type='') {
+  const el = document.getElementById('expStatus');
+  el.textContent = msg;
+  el.className = 'publish-status' + (type ? ` ${type}` : '');
+}
+
+function clearExpForm() {
+  document.getElementById('expDateRange').value = '';
+  document.getElementById('expRole').value = '';
+  document.getElementById('expOrg').value = '';
+  document.getElementById('expDesc').value = '';
+  document.getElementById('expSortOrder').value = '0';
+  document.getElementById('expEditId').value = '';
+  document.getElementById('expFormTitle').textContent = 'Add Experience';
+  document.getElementById('clearExpBtn').style.display = 'none';
+  setExpStatus('');
+}
+
+async function editExp(id) {
+  if (!sb) return;
+  const { data, error } = await sb.from('experience').select('*').eq('id', id).single();
+  if (error || !data) return;
+
+  document.getElementById('expDateRange').value = data.date_range;
+  document.getElementById('expRole').value = data.role;
+  document.getElementById('expOrg').value = data.org;
+  document.getElementById('expDesc').value = data.description || '';
+  document.getElementById('expSortOrder').value = data.sort_order;
+  document.getElementById('expEditId').value = id;
+  document.getElementById('expFormTitle').textContent = 'Edit Experience';
+  document.getElementById('clearExpBtn').style.display = 'inline-block';
+  
+  document.getElementById('expFormTitle').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// ── NEWSLETTER MAILING LIST & BROADCAST ──
+async function loadSubscribers() {
+  if (!sb) return;
+  const { data: subs, error } = await sb
+    .from('subscribers')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  const list = document.getElementById('subList');
+  const countEl = document.getElementById('subCount');
+  if (countEl) countEl.textContent = `${subs.length} subscriber${subs.length !== 1 ? 's' : ''}`;
+
+  if (!subs.length) {
+    list.innerHTML = '<div class="empty-state"><p>No subscribers yet.</p></div>';
+    return;
+  }
+
+  list.innerHTML = subs.map(s => {
+    const d = new Date(s.created_at);
+    const fmt = d.toLocaleDateString('en-GB', { day:'numeric', month:'short' });
+    return `
+      <div class="post-item" id="sub-${s.id}">
+        <div class="post-item-info">
+          <div class="post-item-title" style="font-family:var(--mono); font-size:12px;">${s.email}</div>
+          <div class="post-item-meta"><span>Joined ${fmt}</span></div>
+        </div>
+        <div class="post-item-actions">
+          <button class="icon-btn del" title="Remove Subscriber" onclick="deleteSubscriber(${s.id}, '${s.email}')">✕</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function deleteSubscriber(id, email) {
+  if (!confirm(`Remove "${email}" from the mailing list?`)) return;
+  if (!sb) return;
+  const { error } = await sb.from('subscribers').delete().eq('id', id);
+  if (!error) loadSubscribers();
+}
+
+async function loadMailSettings() {
+  if (!sb) return;
+  const { data: settings, error } = await sb.from('settings').select('*');
+  if (error || !settings) return;
+
+  settings.forEach(s => {
+    if (s.key === 'resend_api_key') document.getElementById('resendApiKey').value = s.value;
+    if (s.key === 'resend_from_email') document.getElementById('resendFromEmail').value = s.value;
+  });
+}
+
+document.getElementById('saveMailSettingsBtn').addEventListener('click', async () => {
+  const key = document.getElementById('resendApiKey').value.trim();
+  const fromEmail = document.getElementById('resendFromEmail').value.trim();
+  const status = document.getElementById('mailSettingsStatus');
+  const btn = document.getElementById('saveMailSettingsBtn');
+
+  if (!fromEmail) {
+    status.textContent = 'From email is required.';
+    status.className = 'publish-status err';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+  status.textContent = '';
+
+  const { error: err1 } = await sb.from('settings').upsert({ key: 'resend_api_key', value: key });
+  const { error: err2 } = await sb.from('settings').upsert({ key: 'resend_from_email', value: fromEmail });
+
+  btn.disabled = false;
+  btn.textContent = 'Save API Settings';
+
+  if (err1 || err2) {
+    status.textContent = 'Failed to save settings.';
+    status.className = 'publish-status err';
+  } else {
+    status.textContent = '✓ Settings saved successfully';
+    status.className = 'publish-status ok';
+  }
+});
+
+async function broadcastPost(postId, title, slug) {
+  if (!confirm(`Are you sure you want to broadcast "${title}" to all subscribers?`)) return;
+
+  const resendKey = document.getElementById('resendApiKey').value.trim();
+  const resendFrom = document.getElementById('resendFromEmail').value.trim();
+
+  if (!resendKey || !resendFrom) {
+    alert('Please configure your Resend settings first (API Key & From Email).');
+    return;
+  }
+
+  // Fetch all subscribers
+  const { data: subs, error: subError } = await sb.from('subscribers').select('email');
+  if (subError || !subs || subs.length === 0) {
+    alert(subError ? 'Failed to fetch subscribers: ' + subError.message : 'No subscribers in the mailing list.');
+    return;
+  }
+
+  const emails = subs.map(s => s.email);
+
+  try {
+    setStatus('Broadcasting email to ' + emails.length + ' subscribers...', 'ok');
+    
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${resendKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        from: resendFrom,
+        to: resendFrom,
+        bcc: emails,
+        subject: `New Blog Post: ${title}`,
+        html: `
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #0F0F0F; line-height: 1.6;">
+            <h2 style="font-family: Georgia, serif; font-size: 24px; border-bottom: 1px solid #EFEFED; padding-bottom: 10px;">${title}</h2>
+            <p>I've just published a new post on my blog. Check it out using the link below:</p>
+            <p style="margin: 20px 0;">
+              <a href="${window.location.origin}/blog/post.html?slug=${slug}" style="background: #1A1AFF; color: #FFFFFF; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; display: inline-block;">Read Post →</a>
+            </p>
+            <p style="color: #5C5C58; font-size: 13px; border-top: 1px solid #EFEFED; padding-top: 15px; margin-top: 30px;">
+              You received this because you subscribed to Akshat Kothari's blog.
+            </p>
+          </div>
+        `
+      })
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      setStatus(`✓ Broadcast sent successfully! (ID: ${data.id})`, 'ok');
+      alert(`Broadcast sent successfully to ${emails.length} subscribers!`);
+    } else {
+      const errData = await res.json();
+      console.error('Resend error:', errData);
+      setStatus('Broadcast failed: ' + (errData.message || JSON.stringify(errData)), 'err');
+      alert('Broadcast failed: ' + (errData.message || JSON.stringify(errData)));
+    }
+  } catch (err) {
+    console.error('Broadcast error:', err);
+    setStatus('Error sending broadcast: ' + err.message, 'err');
+    alert('Error sending broadcast: ' + err.message);
+  }
+async function deleteExp(id, role) {
+  if (!confirm(`Delete "${role}" experience? This cannot be undone.`)) return;
+  if (!sb) return;
+  const { error } = await sb.from('experience').delete().eq('id', id);
+  if (!error) loadExperience();
+}}
+
+window.loadSubscribers = loadSubscribers;
+window.deleteSubscriber = deleteSubscriber;
+window.loadMailSettings = loadMailSettings;
+window.broadcastPost = broadcastPost;
+
+window.loadExperience = loadExperience;
+window.editExp = editExp;
+window.deleteExp = deleteExp;
+window.clearExpForm = clearExpForm;
 </script>
 </body>
 </html>

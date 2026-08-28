@@ -53,6 +53,58 @@
     .post-body blockquote { border-left: 3px solid var(--accent); margin: 2rem 0; padding: 0.5rem 1.5rem; color: var(--black); font-family: var(--serif); font-size: 20px; font-style: italic; line-height: 1.5; }
     .post-body ul, .post-body ol { padding-left: 1.5rem; margin-bottom: 1.35rem; }
     .post-body li { margin-bottom: 0.4rem; }
+    .post-body figure { margin: 2rem 0; }
+    .post-body img {
+      display: block; width: 100%; max-width: 100%; height: auto;
+      border-radius: var(--radius-md); border: 1px solid var(--gray-100);
+    }
+    .post-body figcaption {
+      margin-top: 0.6rem; font-family: var(--mono); font-size: 11px;
+      color: var(--gray-400); text-align: center; line-height: 1.5;
+    }
+    .post-body span[style*="font-family"] { line-height: inherit; }
+
+    /* ── IMG GRID (photo / chart grids from Word docs) ── */
+    .post-body .img-grid {
+      display: grid; gap: 0.75rem; margin: 2rem 0;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+    .post-body .img-grid[data-cols="1"] { grid-template-columns: 1fr; }
+    .post-body .img-grid[data-cols="2"] { grid-template-columns: repeat(2, 1fr); }
+    .post-body .img-grid[data-cols="3"] { grid-template-columns: repeat(3, 1fr); }
+    .post-body .img-grid[data-cols="4"] { grid-template-columns: repeat(4, 1fr); }
+    .post-body .img-grid-cell { margin: 0; }
+    .post-body .img-grid-cell img {
+      width: 100%; height: auto; border-radius: var(--radius-md);
+      border: 1px solid var(--gray-100); display: block;
+      object-fit: contain;
+    }
+    .post-body .img-grid-cell figcaption {
+      font-family: var(--mono); font-size: 10px; color: var(--gray-400);
+      text-align: center; margin-top: 0.35rem;
+    }
+    @media (max-width: 600px) {
+      .post-body .img-grid[data-cols="3"],
+      .post-body .img-grid[data-cols="4"] { grid-template-columns: repeat(2, 1fr); }
+      .post-body .img-grid[data-cols="2"] { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    /* ── DATA TABLES (text/stat tables from Word docs) ── */
+    .post-body table {
+      width: 100%; border-collapse: collapse; margin: 2rem 0;
+      font-size: 15px; line-height: 1.5; overflow-x: auto; display: block;
+    }
+    .post-body th, .post-body td {
+      padding: 10px 14px; border: 1px solid var(--gray-200);
+      text-align: left; vertical-align: top;
+    }
+    .post-body th {
+      background: var(--gray-50); font-weight: 600;
+      font-family: var(--mono); font-size: 12px;
+      text-transform: uppercase; letter-spacing: 0.05em; color: var(--gray-600);
+    }
+    .post-body tr:nth-child(even) td { background: var(--gray-50); }
+
 
     /* ── LIKES ── */
     .post-engagement {

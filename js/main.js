@@ -1,6 +1,6 @@
 /* ============================================================
    main.js — Index page
-   Blog: shows up to 6 starred posts (fallback = latest 6).
+   Blog: shows 1 featured post plus 4 cards (5 total).
    Experience: loaded from Supabase, falls back to hardcoded.
    ============================================================ */
 
@@ -67,9 +67,9 @@ async function loadBlog() {
 
   showSkeleton(featured, grid);
 
-  // Try starred posts first; fall back to latest 6
+  // Try starred posts first; fall back to latest 5.
   let posts = await fetchFeaturedPosts();
-  if (!posts.length) posts = await fetchPosts(6);
+  if (!posts.length) posts = await fetchPosts(5);
 
   if (!posts.length) {
     if (featured) featured.style.display = 'none';
@@ -92,13 +92,13 @@ async function fetchFeaturedPosts() {
       .select('id, title, slug, category, excerpt, created_at, featured')
       .eq('featured', true)
       .order('created_at', { ascending: false })
-      .limit(6);
+      .limit(5);
     if (!error && data) return data;
   } catch(e) { console.warn('Featured fetch failed:', e); }
   return [];
 }
 
-async function fetchPosts(limit = 6, offset = 0) {
+async function fetchPosts(limit = 5, offset = 0) {
   const sb = getSupabase();
 
   // Try Supabase
@@ -236,7 +236,7 @@ function showSkeleton(featured, grid) {
         <div class="skel" style="width:65%;height:14px;"></div>
       </div>`;
   }
-  grid.innerHTML = [1,2,3].map(() => `
+  grid.innerHTML = [1,2,3,4].map(() => `
     <div class="blog-card" style="pointer-events:none">
       <div class="skel" style="width:80px;height:12px;margin-bottom:0.75rem;"></div>
       <div class="skel" style="width:90%;height:17px;margin-bottom:0.5rem;"></div>
@@ -253,4 +253,3 @@ function readTime(text) {
   const w = (text || '').replace(/<[^>]+>/g,'').split(' ').length;
   return Math.max(1, Math.round(w / 40)) + ' min';
 }
-

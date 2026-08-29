@@ -671,8 +671,8 @@ async function toggleStar(id, currentFeatured) {
   if (!currentFeatured) {
     // Count how many are currently starred
     const { data: starred, error } = await sb.from('posts').select('id').eq('featured', true);
-    if (!error && starred && starred.length >= 6) {
-      alert('Maximum 6 starred posts allowed. Unstar another post first.');
+    if (!error && starred && starred.length >= 5) {
+      alert('Maximum 5 starred posts allowed. Unstar another post first.');
       return;
     }
   }
@@ -707,7 +707,7 @@ function updateStats(posts) {
 
   const starred = posts.filter(p => p.featured);
   const starredEl = document.getElementById('statStarred');
-  if (starredEl) starredEl.textContent = `${starred.length}/6`;
+  if (starredEl) starredEl.textContent = `${starred.length}/5`;
 }
 
 // ── RICH BLOG EDITOR ───────────────────────────────────────

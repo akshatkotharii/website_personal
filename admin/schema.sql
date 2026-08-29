@@ -15,7 +15,7 @@ create table public.posts (
   category    text default 'personal',
   excerpt     text default '',
   content     text default '',
-  featured    boolean default false,   -- ★ starred on index page (max 6)
+  featured    boolean default false,   -- ★ starred on index page (max 5)
   parent_post_id bigint references public.posts(id) on delete cascade,
   created_at  timestamptz default now(),
   updated_at  timestamptz default now()

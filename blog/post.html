@@ -37,12 +37,21 @@
       letter-spacing: -0.03em; line-height: 1.08; color: var(--black); margin-bottom: 2.5rem;
     }
     .post-divider { width: 36px; height: 2px; background: var(--accent); margin-bottom: 2.5rem; }
+    .post-thread { margin: 0 0 2.5rem; padding: 1.1rem 1.25rem; background: var(--gray-50); border: 1px solid var(--gray-100); border-radius: var(--radius-md); }
+    .post-thread-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--gray-400); margin-bottom: 0.8rem; }
+    .post-thread-item { display: flex; gap: 0.8rem; align-items: baseline; padding: 0.65rem 0; border-top: 1px solid var(--gray-100); text-decoration: none; color: var(--black); }
+    .post-thread-item:first-of-type { border-top: 0; }
+    .post-thread-item:hover .post-thread-title { color: var(--accent); }
+    .post-thread-date { width: 78px; flex: 0 0 78px; font-family: var(--mono); font-size: 10px; color: var(--gray-400); }
+    .post-thread-title { font-size: 13px; line-height: 1.4; transition: color 0.18s; }
+    .post-thread-current { color: var(--accent); font-family: var(--mono); font-size: 10px; }
 
     .post-body { font-size: 17px; line-height: 1.88; color: var(--gray-600); }
     .post-body h2 { font-family: var(--serif); font-size: 26px; color: var(--black); letter-spacing: -0.02em; margin: 2.5rem 0 1rem; line-height: 1.2; }
     .post-body h3 { font-family: var(--sans); font-size: 16px; font-weight: 600; color: var(--black); margin: 2rem 0 0.75rem; }
     .post-body p { margin-bottom: 1.35rem; }
     .post-body p:last-child { margin-bottom: 0; }
+    .post-body hr { border: 0; border-top: 1px solid var(--gray-200); margin: 3rem 0 2.5rem; }
     .post-body strong { color: var(--black); font-weight: 500; }
     .post-body em { font-style: italic; }
     .post-body a { color: var(--accent); text-decoration: underline; text-decoration-color: var(--accent-soft); }
@@ -84,6 +93,8 @@
       text-align: center; margin-top: 0.35rem;
     }
     @media (max-width: 600px) {
+      .post-thread-item { gap: 0.55rem; }
+      .post-thread-date { width: 66px; flex-basis: 66px; }
       .post-body .img-grid[data-cols="3"],
       .post-body .img-grid[data-cols="4"] { grid-template-columns: repeat(2, 1fr); }
       .post-body .img-grid[data-cols="2"] { grid-template-columns: repeat(2, 1fr); }
@@ -300,6 +311,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Load likes + comments after post renders
   if (currentPostId) {
+    loadThread(post);
     loadLikes(currentPostId);
     loadComments(currentPostId);
   }
@@ -326,6 +338,7 @@ function renderPost(wrap, post) {
     </div>
     <h1 class="post-title">${post.title}</h1>
     <div class="post-divider"></div>
+    <aside class="post-thread" id="postThread" style="display:none;"></aside>
     <div class="post-body">${bodyHTML}</div>
 
     <!-- LIKES -->
@@ -360,6 +373,41 @@ function renderPost(wrap, post) {
       <span style="font-family:var(--mono);font-size:11px;color:var(--gray-400);">Akshat Kothari</span>
     </div>
   `;
+}
+
+// Render original post plus every linked follow-up, each with its own date.
+async function loadThread(post) {
+  if (!sb || !currentPostId) return;
+
+  const rootId = post.parent_post_id || post.id;
+  try {
+    const { data: posts, error } = await sb
+      .from('posts')
+      .select('id, title, slug, created_at, parent_post_id')
+      .or(`id.eq.${rootId},parent_post_id.eq.${rootId}`)
+      .order('created_at', { ascending: true });
+    if (error || !posts || posts.length < 2) return;
+
+    const thread = document.getElementById('postThread');
+    if (!thread) return;
+    thread.style.display = 'block';
+    thread.innerHTML = `
+      <div class="post-thread-label">Story thread · ${posts.length} posts</div>
+      ${posts.map((item, index) => {
+        const date = new Date(item.created_at).toLocaleDateString('en-GB', {
+          day: 'numeric', month: 'short', year: 'numeric'
+        });
+        const current = Number(item.id) === Number(currentPostId);
+        const label = index === 0 ? 'Original' : `Update ${index}`;
+        return `<a class="post-thread-item" href="post.html?slug=${encodeURIComponent(item.slug)}">
+          <span class="post-thread-date">${date}</span>
+          <span class="post-thread-title">${label}: ${item.title}</span>
+          ${current ? '<span class="post-thread-current">Reading</span>' : ''}
+        </a>`;
+      }).join('')}`;
+  } catch (error) {
+    console.warn('Thread fetch failed:', error);
+  }
 }
 
 // ── LIKES ──

@@ -520,6 +520,8 @@
             <input type="file" class="field-input" id="imageUpload" accept="image/*" multiple>
           </div>
           <input type="hidden" id="fEditId">
+          <input type="hidden" id="fParentId">
+          <input type="hidden" id="fSlug">
           <div class="write-actions">
             <button class="btn-publish-main" id="publishBtn">Publish →</button>
           </div>
@@ -655,6 +657,7 @@ function renderPostList(posts) {
           <button class="icon-btn" title="${p.featured ? 'Unstar post' : 'Star post'}" style="color:${p.featured ? '#EAB308' : 'inherit'};border-color:${p.featured ? '#EAB308' : 'inherit'}" onclick="toggleStar(${p.id}, ${p.featured || false})">${p.featured ? '★' : '☆'}</button>
           <button class="icon-btn" title="View post" onclick="viewPost('${p.slug}')">↗</button>
           <button class="icon-btn" title="Edit" onclick="editPost(${p.id})">✎</button>
+          <button class="icon-btn" title="Start a thread update" onclick="addThreadUpdate(${p.id})">+</button>
           <button class="icon-btn del" title="Delete" onclick="deletePost(${p.id}, '${p.title.replace(/'/g,"\\'")}')">✕</button>
         </div>
       </div>
@@ -937,6 +940,8 @@ document.getElementById('publishBtn').addEventListener('click', async () => {
   const category = document.getElementById('fCategory').value;
   const excerpt  = document.getElementById('fExcerpt').value.trim();
   const editId   = document.getElementById('fEditId').value;
+  const parentId = document.getElementById('fParentId').value;
+  const savedSlug = document.getElementById('fSlug').value;
   const status   = document.getElementById('publishStatus');
   const btn      = document.getElementById('publishBtn');
 
@@ -950,10 +955,11 @@ document.getElementById('publishBtn').addEventListener('click', async () => {
   setStatus('');
 
   // Build slug from title
-  const slug = title.toLowerCase()
+  const baseSlug = title.toLowerCase()
     .replace(/[^a-z0-9\s-]/g, '')
     .trim()
     .replace(/\s+/g, '-');
+  const slug = savedSlug || (parentId ? `${baseSlug}-${Date.now()}` : baseSlug);
 
   // Convert plain text to HTML paragraphs if no HTML tags present
   const html = content.includes('<') ? content :
@@ -968,7 +974,9 @@ document.getElementById('publishBtn').addEventListener('click', async () => {
     category,
     excerpt: excerpt || content.replace(/<[^>]+>/g,'').slice(0, 130) + (content.length > 130 ? '…' : ''),
     content: html,
+    parent_post_id: parentId ? Number(parentId) : null,
   };
+  if (editId) payload.updated_at = new Date().toISOString();
 
   let sbError, sbData;
 
@@ -1061,12 +1069,47 @@ async function editPost(id) {
   document.getElementById('fExcerpt').value  = data.excerpt || '';
   setEditorContent(data.content || '');
   document.getElementById('fEditId').value   = id;
+  document.getElementById('fParentId').value = data.parent_post_id || '';
+  document.getElementById('fSlug').value     = data.slug || '';
   document.getElementById('writeTitle').textContent = 'Edit post';
   document.getElementById('publishBtn').textContent = 'Save changes →';
 
   // Scroll to write panel
   document.querySelector('.write-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
+
+// Start a separate post linked to an older post. Readers see both in one thread.
+async function addThreadUpdate(id) {
+  const { data, error } = await sb.from('posts').select('*').eq('id', id).single();
+  if (error || !data) {
+    setStatus('Could not load post for thread update.', 'err');
+    return;
+  }
+
+  const date = new Date().toLocaleDateString('en-GB', {
+    day: 'numeric', month: 'long', year: 'numeric'
+  });
+
+  document.getElementById('fTitle').value    = `Update: ${data.title}`;
+  document.getElementById('fCategory').value = data.category || 'personal';
+  document.getElementById('fExcerpt').value  = `Update to: ${data.title}`;
+  setEditorContent(`<h2>Update — ${date}</h2><p><br></p>`);
+  document.getElementById('fEditId').value   = '';
+  document.getElementById('fParentId').value = id;
+  document.getElementById('fSlug').value     = '';
+  document.getElementById('writeTitle').textContent = 'New thread update';
+  document.getElementById('publishBtn').textContent = 'Publish thread update →';
+
+  document.querySelector('.write-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  richEditor.focus();
+  const range = document.createRange();
+  range.selectNodeContents(richEditor);
+  range.collapse(false);
+  const selection = window.getSelection();
+  selection.removeAllRanges();
+  selection.addRange(range);
+}
+window.addThreadUpdate = addThreadUpdate;
 
 // ── DELETE ───────────────────────────────────────────────────
 async function deletePost(id, title) {
@@ -1084,7 +1127,7 @@ function viewPost(slug) {
 document.getElementById('clearBtn').addEventListener('click', clearForm);
 
 function clearForm() {
-  ['fTitle','fExcerpt','fEditId'].forEach(id => {
+  ['fTitle','fExcerpt','fEditId','fParentId','fSlug'].forEach(id => {
     document.getElementById(id).value = '';
   });
   setEditorContent('');

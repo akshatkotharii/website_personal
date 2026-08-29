@@ -16,9 +16,12 @@ create table public.posts (
   excerpt     text default '',
   content     text default '',
   featured    boolean default false,   -- ★ starred on index page (max 6)
+  parent_post_id bigint references public.posts(id) on delete cascade,
   created_at  timestamptz default now(),
   updated_at  timestamptz default now()
 );
+
+create index posts_parent_post_id_idx on public.posts(parent_post_id);
 
 alter table public.posts enable row level security;
 create policy "public_read_posts"   on public.posts for select using (true);
@@ -191,4 +194,5 @@ on conflict do nothing;
 -- If posts table already exists and you DON'T want to drop/recreate,
 -- run only this in SQL editor:
 -- ALTER TABLE public.posts ADD COLUMN IF NOT EXISTS featured boolean default false;
-
+-- ALTER TABLE public.posts ADD COLUMN IF NOT EXISTS parent_post_id bigint REFERENCES public.posts(id) ON DELETE CASCADE;
+-- CREATE INDEX IF NOT EXISTS posts_parent_post_id_idx ON public.posts(parent_post_id);

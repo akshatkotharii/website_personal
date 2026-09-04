@@ -23,7 +23,7 @@
   --mono:  'JetBrains Mono', 'Fira Mono', monospace;
 
   --nav-h: 56px;
-  --ticker-h: 0px;
+  --ticker-h: 30px;
   --offset: calc(var(--nav-h) + var(--ticker-h));
 
   --radius-sm: 8px;

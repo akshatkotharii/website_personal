@@ -42,15 +42,15 @@ function getSupabase() {
 // ── DYNAMIC NEWSLETTER SIGNUP WIDGET INJECTION ──
 document.addEventListener('DOMContentLoaded', () => {
   // Do not show on admin page
-  if (window.location.pathname.includes('/admin')) return;
+  if (/\/(admin|unsubscribe)/.test(window.location.pathname)) return;
 
   const widget = document.createElement('div');
   widget.className = 'newsletter-widget';
   widget.innerHTML = `
-    <button class="newsletter-btn" id="nlBtn" style="display: none;">
+    <button class="newsletter-btn" id="nlBtn" style="display: flex;">
       <span>Subscribe ✉</span>
     </button>
-    <div class="newsletter-card open" id="nlCard">
+    <div class="newsletter-card" id="nlCard">
       <button class="newsletter-close" id="nlClose" title="Close newsletter signup">×</button>
       <h4>Inside Akshat’s Brain</h4>
       <p>Subscribe to get new blog posts directly in your inbox.</p>
@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
           nlMsg.textContent = 'Already subscribed!';
           nlMsg.classList.add('success');
         } else {
-          nlMsg.textContent = error.message;
+          nlMsg.textContent = 'Could not subscribe. Please try again shortly.';
           nlMsg.classList.add('error');
         }
       } else {
@@ -121,4 +121,3 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
-

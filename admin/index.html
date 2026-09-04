@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self';">
+  <meta name="robots" content="noindex,nofollow">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin — Akshat Kothari</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -294,6 +297,9 @@
       .stats-row { grid-template-columns: 1fr 1fr; }
     }
   </style>
+<link rel="stylesheet" href="../css/admin-notebook.css">
+<script src="../js/vendor/purify.min.js"></script>
+<script src="../js/safety.js"></script>
 </head>
 <body>
 
@@ -360,6 +366,7 @@
     </div>
   </div>
 
+  <section id="notebookAdmin" class="notebook-admin" aria-label="Notebook management"></section>
   <div class="admin-layout">
 
     <!-- LEFT: POSTS + COMMENTS -->
@@ -435,7 +442,7 @@
         </div>
         <div class="panel-body">
           <!-- Settings Form -->
-          <details style="margin-bottom: 1.5rem; border-bottom: 1px solid var(--gray-100); padding-bottom: 1rem;">
+          <details hidden style="margin-bottom: 1.5rem; border-bottom: 1px solid var(--gray-100); padding-bottom: 1rem;">
             <summary style="font-size: 13px; font-weight: 500; cursor: pointer; color: var(--accent); margin-bottom: 8px;">Configure Email Provider (Resend)</summary>
             <div class="field-group" style="margin-top: 8px;">
               <label class="field-label">Resend API Key</label>
@@ -561,8 +568,15 @@ function resetActivityTimer() {
 document.addEventListener('click', resetActivityTimer);
 document.addEventListener('keydown', resetActivityTimer);
 
-sb && sb.auth.onAuthStateChange((event, session) => {
+sb && sb.auth.onAuthStateChange((event, session) => { setTimeout(async () => {
   if (session) {
+    const {data: allowed, error: accessError} = await sb.rpc('is_portfolio_admin');
+    if (accessError || allowed !== true) {
+      document.getElementById('loginScreen').style.display='flex';
+      document.getElementById('adminShell').style.display='none';
+      showLoginErr(accessError ? 'Admin setup needed: run notebook-migration.sql with your login email.' : 'This account does not have admin access.');
+      return;
+    }
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('adminShell').style.display  = 'block';
     document.getElementById('userEmail').textContent = session.user.email;
@@ -577,7 +591,7 @@ sb && sb.auth.onAuthStateChange((event, session) => {
     document.getElementById('adminShell').style.display  = 'none';
     clearTimeout(activityTimer);
   }
-});
+}, 0); });
 
 // ── LOGIN ───────────────────────────────────────────────────
 document.getElementById('loginBtn').addEventListener('click', async () => {
@@ -646,19 +660,19 @@ function renderPostList(posts) {
     return `
       <div class="post-item" data-id="${p.id}">
         <div class="post-item-info">
-          <div class="post-item-title">${p.title}</div>
+          <div class="post-item-title">${escapeText(p.title)}</div>
           <div class="post-item-meta">
             <span>${fmt}</span>
-            <span class="post-item-tag">${p.category || 'personal'}</span>
+            <span class="post-item-tag">${escapeText(p.category || 'personal')}</span>
           </div>
         </div>
         <div class="post-item-actions">
-          <button class="icon-btn" title="Broadcast to subscribers" style="color:var(--accent);border-color:var(--accent)" onclick="broadcastPost(${p.id}, '${p.title.replace(/'/g,"\\'")}', '${p.slug}')">✉</button>
+          <button class="icon-btn" title="Email published post" onclick="broadcastPost(${Number(p.id)})">✉</button>
           <button class="icon-btn" title="${p.featured ? 'Unstar post' : 'Star post'}" style="color:${p.featured ? '#EAB308' : 'inherit'};border-color:${p.featured ? '#EAB308' : 'inherit'}" onclick="toggleStar(${p.id}, ${p.featured || false})">${p.featured ? '★' : '☆'}</button>
-          <button class="icon-btn" title="View post" onclick="viewPost('${p.slug}')">↗</button>
+          <button class="icon-btn" title="View post" onclick="viewPost(${htmlArg(p.slug)})">↗</button>
           <button class="icon-btn" title="Edit" onclick="editPost(${p.id})">✎</button>
           <button class="icon-btn" title="Start a thread update" onclick="addThreadUpdate(${p.id})">+</button>
-          <button class="icon-btn del" title="Delete" onclick="deletePost(${p.id}, '${p.title.replace(/'/g,"\\'")}')">✕</button>
+          <button class="icon-btn del" title="Delete post" onclick="deletePost(${Number(p.id)}, &quot;this post&quot;)">✕</button>
         </div>
       </div>
     `;
@@ -713,6 +727,12 @@ function updateStats(posts) {
 // ── RICH BLOG EDITOR ───────────────────────────────────────
 const richEditor = document.getElementById('richEditor');
 const sourceEditor = document.getElementById('fContent');
+richEditor.addEventListener('paste', event => {
+  const html = event.clipboardData?.getData('text/html');
+  if (!html) return;
+  event.preventDefault();
+  insertEditorHtml(html);
+});
 
 function focusEditor() {
   richEditor.focus();
@@ -729,7 +749,7 @@ function syncEditorToSource() {
 }
 
 function syncSourceToEditor() {
-  richEditor.innerHTML = sourceEditor.value.trim();
+  richEditor.innerHTML = safeMarkup(sourceEditor.value.trim());
 }
 
 function getEditorContent() {
@@ -739,13 +759,13 @@ function getEditorContent() {
 }
 
 function setEditorContent(html = '') {
-  richEditor.innerHTML = html;
+  richEditor.innerHTML = safeMarkup(html);
   sourceEditor.value = html;
 }
 
 function insertEditorHtml(html) {
   focusEditor();
-  document.execCommand('insertHTML', false, html);
+  document.execCommand('insertHTML', false, safeMarkup(html));
   syncEditorToSource();
 }
 
@@ -768,7 +788,7 @@ document.getElementById('fontColor').addEventListener('input', e => {
 document.getElementById('linkBtn').addEventListener('click', () => {
   const url = prompt('Link URL');
   if (!url) return;
-  runEditorCommand('createLink', url);
+  try { const link = new URL(url, location.origin); if (!['http:','https:','mailto:'].includes(link.protocol)) throw new Error(); runEditorCommand('createLink', link.href); } catch { alert('Enter a valid web or email link.'); }
 });
 
 document.getElementById('imageUrlBtn').addEventListener('click', () => {
@@ -912,7 +932,7 @@ function postProcessDocx(html) {
   });
 
   // Return body innerHTML
-  return doc.body.innerHTML;
+  return safeMarkup(doc.body.innerHTML);
 }
 
 
@@ -959,7 +979,7 @@ document.getElementById('publishBtn').addEventListener('click', async () => {
     .replace(/[^a-z0-9\s-]/g, '')
     .trim()
     .replace(/\s+/g, '-');
-  const slug = savedSlug || (parentId ? `${baseSlug}-${Date.now()}` : baseSlug);
+  const slug = savedSlug || (parentId ? `${baseSlug || "update"}-${Date.now()}` : (baseSlug || `post-${Date.now()}`));
 
   // Convert plain text to HTML paragraphs if no HTML tags present
   const html = content.includes('<') ? content :
@@ -973,7 +993,7 @@ document.getElementById('publishBtn').addEventListener('click', async () => {
     slug,
     category,
     excerpt: excerpt || content.replace(/<[^>]+>/g,'').slice(0, 130) + (content.length > 130 ? '…' : ''),
-    content: html,
+    content: safeMarkup(html),
     parent_post_id: parentId ? Number(parentId) : null,
   };
   if (editId) payload.updated_at = new Date().toISOString();
@@ -1028,10 +1048,10 @@ async function loadPendingComments() {
     const fmt = d.toLocaleDateString('en-GB', { day:'numeric', month:'short' });
     return `<div class="comment-admin-item" id="comment-${c.id}">
       <div class="comment-admin-body">
-        <div class="comment-admin-name">${c.name} <span class="badge-pending">PENDING</span></div>
+        <div class="comment-admin-name">${escapeText(c.name)} <span class="badge-pending">PENDING</span></div>
         <div class="comment-admin-meta">${fmt}</div>
-        <div class="comment-admin-text">${c.message}</div>
-        <div class="comment-admin-post">On: ${c.posts?.title || ''}</div>
+        <div class="comment-admin-text">${escapeText(c.message)}</div>
+        <div class="comment-admin-post">On: ${escapeText(c.posts?.title || '')}</div>
       </div>
       <div class="post-item-actions" style="flex-shrink:0">
         <button class="icon-btn" style="color:#22C55E;border-color:#22C55E" onclick="approveComment(${c.id})">✓</button>
@@ -1170,15 +1190,15 @@ async function loadExperience() {
     return `
       <div class="post-item" id="exp-${exp.id}">
         <div class="post-item-info">
-          <div class="post-item-title">${exp.role} — ${exp.org}</div>
+          <div class="post-item-title">${escapeText(exp.role)} — ${escapeText(exp.org)}</div>
           <div class="post-item-meta">
-            <span>${exp.date_range}</span>
+            <span>${escapeText(exp.date_range)}</span>
             <span>Order: ${exp.sort_order}</span>
           </div>
         </div>
         <div class="post-item-actions">
           <button class="icon-btn" title="Edit" onclick="editExp(${exp.id})">✎</button>
-          <button class="icon-btn del" title="Delete" onclick="deleteExp(${exp.id}, '${exp.role.replace(/'/g,"\\'")}')">✕</button>
+          <button class="icon-btn del" title="Delete experience" onclick="deleteExp(${Number(exp.id)}, &quot;this entry&quot;)">✕</button>
         </div>
       </div>
     `;
@@ -1296,11 +1316,11 @@ async function loadSubscribers() {
     return `
       <div class="post-item" id="sub-${s.id}">
         <div class="post-item-info">
-          <div class="post-item-title" style="font-family:var(--mono); font-size:12px;">${s.email}</div>
+          <div class="post-item-title" style="font-family:var(--mono); font-size:12px;">${escapeText(s.email)}</div>
           <div class="post-item-meta"><span>Joined ${fmt}</span></div>
         </div>
         <div class="post-item-actions">
-          <button class="icon-btn del" title="Remove Subscriber" onclick="deleteSubscriber(${s.id}, '${s.email}')">✕</button>
+          <button class="icon-btn del" title="Remove subscriber" onclick="deleteSubscriber(${Number(s.id)}, &quot;this subscriber&quot;)">✕</button>
         </div>
       </div>
     `;
@@ -1314,118 +1334,36 @@ async function deleteSubscriber(id, email) {
   if (!error) loadSubscribers();
 }
 
-async function loadMailSettings() {
-  if (!sb) return;
-  const { data: settings, error } = await sb.from('settings').select('*');
-  if (error || !settings) return;
-
-  settings.forEach(s => {
-    if (s.key === 'resend_api_key') document.getElementById('resendApiKey').value = s.value;
-    if (s.key === 'resend_from_email') document.getElementById('resendFromEmail').value = s.value;
-  });
+async function loadMailSettings() {}
+document.getElementById('saveMailSettingsBtn').addEventListener('click', () => {
+  document.getElementById('mailSettingsStatus').textContent = 'Email credentials belong in server environment settings. See SETUP.md.';
+});
+async function broadcastPost(postId, title) {
+  if (!confirm('Send this published post to subscribed readers? Review its content before sending.')) return;
+  try {
+    const {data:{session}} = await sb.auth.getSession();
+    let offset=0, sent=0;
+    do {
+      const response = await fetch(SUPABASE_URL + '/functions/v1/notebook-mail', {
+        method:'POST', headers:{'Content-Type':'application/json',apikey:SUPABASE_ANON,Authorization:'Bearer '+session.access_token},
+        body:JSON.stringify({postId,offset})
+      });
+      const result = await response.json();
+      if(!response.ok) throw new Error(result.error || 'Email service unavailable.');
+      sent += result.sent || 0;
+      offset = result.nextOffset;
+      setStatus('Newsletter: '+sent+' emails sent. Keep this page open.', 'ok');
+    } while(offset !== null);
+    alert(sent+' emails sent. Previously delivered emails were skipped.');
+  } catch(error) { alert(error.message || 'Sending failed. Check newsletter server setup.'); }
 }
 
-document.getElementById('saveMailSettingsBtn').addEventListener('click', async () => {
-  const key = document.getElementById('resendApiKey').value.trim();
-  const fromEmail = document.getElementById('resendFromEmail').value.trim();
-  const status = document.getElementById('mailSettingsStatus');
-  const btn = document.getElementById('saveMailSettingsBtn');
-
-  if (!fromEmail) {
-    status.textContent = 'From email is required.';
-    status.className = 'publish-status err';
-    return;
-  }
-
-  btn.disabled = true;
-  btn.textContent = 'Saving...';
-  status.textContent = '';
-
-  const { error: err1 } = await sb.from('settings').upsert({ key: 'resend_api_key', value: key });
-  const { error: err2 } = await sb.from('settings').upsert({ key: 'resend_from_email', value: fromEmail });
-
-  btn.disabled = false;
-  btn.textContent = 'Save API Settings';
-
-  if (err1 || err2) {
-    status.textContent = 'Failed to save settings.';
-    status.className = 'publish-status err';
-  } else {
-    status.textContent = '✓ Settings saved successfully';
-    status.className = 'publish-status ok';
-  }
-});
-
-async function broadcastPost(postId, title, slug) {
-  if (!confirm(`Are you sure you want to broadcast "${title}" to all subscribers?`)) return;
-
-  const resendKey = document.getElementById('resendApiKey').value.trim();
-  const resendFrom = document.getElementById('resendFromEmail').value.trim();
-
-  if (!resendKey || !resendFrom) {
-    alert('Please configure your Resend settings first (API Key & From Email).');
-    return;
-  }
-
-  // Fetch all subscribers
-  const { data: subs, error: subError } = await sb.from('subscribers').select('email');
-  if (subError || !subs || subs.length === 0) {
-    alert(subError ? 'Failed to fetch subscribers: ' + subError.message : 'No subscribers in the mailing list.');
-    return;
-  }
-
-  const emails = subs.map(s => s.email);
-
-  try {
-    setStatus('Broadcasting email to ' + emails.length + ' subscribers...', 'ok');
-    
-    const res = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${resendKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        from: resendFrom,
-        to: resendFrom,
-        bcc: emails,
-        subject: `New Blog Post: ${title}`,
-        html: `
-          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #0F0F0F; line-height: 1.6;">
-            <h2 style="font-family: Georgia, serif; font-size: 24px; border-bottom: 1px solid #EFEFED; padding-bottom: 10px;">${title}</h2>
-            <p>I've just published a new post on my blog. Check it out using the link below:</p>
-            <p style="margin: 20px 0;">
-              <a href="${window.location.origin}/blog/post.html?slug=${slug}" style="background: #1A1AFF; color: #FFFFFF; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; display: inline-block;">Read Post →</a>
-            </p>
-            <p style="color: #5C5C58; font-size: 13px; border-top: 1px solid #EFEFED; padding-top: 15px; margin-top: 30px;">
-              You received this because you subscribed to Akshat Kothari's blog.
-            </p>
-          </div>
-        `
-      })
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      setStatus(`✓ Broadcast sent successfully! (ID: ${data.id})`, 'ok');
-      alert(`Broadcast sent successfully to ${emails.length} subscribers!`);
-    } else {
-      const errData = await res.json();
-      console.error('Resend error:', errData);
-      setStatus('Broadcast failed: ' + (errData.message || JSON.stringify(errData)), 'err');
-      alert('Broadcast failed: ' + (errData.message || JSON.stringify(errData)));
-    }
-  } catch (err) {
-    console.error('Broadcast error:', err);
-    setStatus('Error sending broadcast: ' + err.message, 'err');
-    alert('Error sending broadcast: ' + err.message);
-  }
 async function deleteExp(id, role) {
   if (!confirm(`Delete "${role}" experience? This cannot be undone.`)) return;
   if (!sb) return;
   const { error } = await sb.from('experience').delete().eq('id', id);
   if (!error) loadExperience();
-}}
+}
 
 window.loadSubscribers = loadSubscribers;
 window.deleteSubscriber = deleteSubscriber;
@@ -1437,5 +1375,7 @@ window.editExp = editExp;
 window.deleteExp = deleteExp;
 window.clearExpForm = clearExpForm;
 </script>
+<script src="../js/notebook-data.js"></script>
+<script src="../js/notebook-admin.js"></script>
 </body>
 </html>

@@ -18,6 +18,7 @@ function initNav() {
     toggle.addEventListener('click', () => {
       const open = drawer.classList.toggle('open');
       toggle.classList.toggle('open', open);
+      toggle.setAttribute('aria-expanded', String(open));
       document.body.style.overflow = open ? 'hidden' : '';
     });
     drawer.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
@@ -106,7 +107,7 @@ async function fetchPosts(limit = 5, offset = 0) {
     try {
       const { data, error } = await sb
         .from('posts')
-        .select('id, title, slug, category, excerpt, created_at, featured')
+        .select('id, title, slug, category, excerpt, created_at')
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1);
       if (!error && data) return data;
@@ -162,7 +163,7 @@ async function loadExperience() {
   const timeline = document.getElementById('expTimeline');
   if (!timeline) return;
 
-  let entries = [];
+  let entries = [], databaseLoaded = false;
   const sb = getSupabase();
 
   if (sb) {
@@ -171,20 +172,20 @@ async function loadExperience() {
         .from('experience')
         .select('*')
         .order('sort_order', { ascending: true });
-      if (!error && data && data.length) entries = data;
+      if (!error && data) { entries = data; databaseLoaded = true; }
     } catch(e) { console.warn('Experience fetch failed:', e); }
   }
 
   // Fall back to static data if DB has nothing
-  if (!entries.length) entries = STATIC_EXPERIENCE;
+  if (!databaseLoaded) entries = STATIC_EXPERIENCE;
 
   timeline.innerHTML = entries.map(exp => `
     <div class="tl-item">
-      <div class="tl-date">${exp.date_range}</div>
+      <div class="tl-date">${escapeText(exp.date_range)}</div>
       <div>
-        <div class="tl-role">${exp.role}</div>
-        <div class="tl-org">${exp.org}</div>
-        <p class="tl-desc">${exp.description}</p>
+        <div class="tl-role">${escapeText(exp.role)}</div>
+        <div class="tl-org">${escapeText(exp.org)}</div>
+        <p class="tl-desc">${escapeText(exp.description)}</p>
       </div>
     </div>
   `).join('');
@@ -193,33 +194,33 @@ async function loadExperience() {
 /* ── RENDER ──────────────────────────────────────────────── */
 function renderFeatured(el, post) {
   if (!el) return;
-  el.href = `blog/post.html?slug=${post.slug}`;
+  el.href = `blog/post.html?slug=${encodeURIComponent(post.slug)}`;
   el.style.display = 'grid';
   el.innerHTML = `
     <div class="blog-featured-accent"></div>
     <div class="blog-featured-body">
       <div class="blog-featured-meta">
-        <span class="blog-row-tag">${post.category || post.cat || 'personal'}</span>
+        <span class="blog-row-tag">${escapeText(post.category || post.cat || 'personal')}</span>
         <span class="blog-featured-date">${fmtDate(post.created_at || post.date)}</span>
         <span class="blog-featured-read">${readTime(post.excerpt)} read</span>
       </div>
-      <h3 class="blog-featured-title">${post.title}</h3>
-      <p class="blog-featured-excerpt">${post.excerpt || ''}</p>
+      <h3 class="blog-featured-title">${escapeText(post.title)}</h3>
+      <p class="blog-featured-excerpt">${escapeText(post.excerpt || '')}</p>
       <span class="blog-featured-cta">Read post →</span>
     </div>`;
 }
 
 function makeCard(post) {
   const a = document.createElement('a');
-  a.href = `blog/post.html?slug=${post.slug}`;
+  a.href = `blog/post.html?slug=${encodeURIComponent(post.slug)}`;
   a.className = 'blog-card';
   a.innerHTML = `
     <div class="blog-card-top">
-      <span class="blog-row-tag">${post.category || post.cat || 'personal'}</span>
+      <span class="blog-row-tag">${escapeText(post.category || post.cat || 'personal')}</span>
       <span class="blog-card-read">${readTime(post.excerpt)}</span>
     </div>
-    <h4 class="blog-card-title">${post.title}</h4>
-    <p class="blog-card-excerpt">${post.excerpt || ''}</p>
+    <h4 class="blog-card-title">${escapeText(post.title)}</h4>
+    <p class="blog-card-excerpt">${escapeText(post.excerpt || '')}</p>
     <div class="blog-card-date">${fmtDate(post.created_at || post.date)}</div>`;
   return a;
 }

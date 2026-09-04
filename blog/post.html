@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self';">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Blog — Akshat Kothari</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -211,6 +213,8 @@
       .comment-form-row { grid-template-columns: 1fr; }
     }
   </style>
+<script src="../js/vendor/purify.min.js"></script>
+<script src="../js/safety.js"></script>
 </head>
 <body>
 
@@ -219,7 +223,7 @@
   <ul class="nav-links">
     <li><a href="../index.html#about">About</a></li>
     <li><a href="../index.html#now">Now</a></li>
-    <li><a href="../index.html#projects">Projects</a></li>
+    <li><a href="../index.html#notebook">Projects</a></li>
     <li><a href="../index.html#experience">Experience</a></li>
     <li><a href="index.html">Blog</a></li>
     <li><a href="../index.html#contact">Contact</a></li>
@@ -232,7 +236,7 @@
 <div class="nav-drawer" id="navDrawer">
   <a href="../index.html#about">About</a>
   <a href="../index.html#now">Now</a>
-  <a href="../index.html#projects">Projects</a>
+  <a href="../index.html#notebook">Projects</a>
   <a href="index.html">Blog</a>
   <a href="../index.html#contact">Contact</a>
 </div>
@@ -265,10 +269,10 @@ drawer && drawer.querySelectorAll('a').forEach(a => a.addEventListener('click', 
 
 // ── BROWSER FINGERPRINT (for likes, no login needed) ──
 function getFingerprint() {
-  let fp = localStorage.getItem('ak_fp');
+  let fp; try { fp = localStorage.getItem('ak_fp'); } catch {}
   if (!fp) {
-    fp = 'fp_' + Date.now() + '_' + Math.random().toString(36).slice(2);
-    localStorage.setItem('ak_fp', fp);
+    fp = crypto.randomUUID();
+    try { localStorage.setItem('ak_fp', fp); } catch {}
   }
   return fp;
 }
@@ -334,12 +338,12 @@ function renderPost(wrap, post) {
     <a href="index.html" class="post-back">← All posts</a>
     <div class="post-meta">
       <span>${dateStr}</span>
-      <span class="post-meta-tag">${post.category || post.cat || 'personal'}</span>
+      <span class="post-meta-tag">${escapeText(post.category || post.cat || 'personal')}</span>
     </div>
-    <h1 class="post-title">${post.title}</h1>
+    <h1 class="post-title">${escapeText(post.title)}</h1>
     <div class="post-divider"></div>
     <aside class="post-thread" id="postThread" style="display:none;"></aside>
-    <div class="post-body">${bodyHTML}</div>
+    <div class="post-body">${safeMarkup(bodyHTML)}</div>
 
     <!-- LIKES -->
     <div class="post-engagement" id="engagementBar">
@@ -401,7 +405,7 @@ async function loadThread(post) {
         const label = index === 0 ? 'Original' : `Update ${index}`;
         return `<a class="post-thread-item" href="post.html?slug=${encodeURIComponent(item.slug)}">
           <span class="post-thread-date">${date}</span>
-          <span class="post-thread-title">${label}: ${item.title}</span>
+          <span class="post-thread-title">${label}: ${escapeText(item.title)}</span>
           ${current ? '<span class="post-thread-current">Reading</span>' : ''}
         </a>`;
       }).join('')}`;
@@ -410,49 +414,29 @@ async function loadThread(post) {
   }
 }
 
-// ── LIKES ──
-async function loadLikes(postId) {
-  if (!sb) { document.getElementById('likeCount').textContent = ''; return; }
-  const { count } = await sb.from('likes').select('*', { count:'exact', head:true }).eq('post_id', postId);
-  const fp = getFingerprint();
-  const { data: myLike } = await sb.from('likes').select('id').eq('post_id', postId).eq('fingerprint', fp).maybeSingle();
-
-  const btn = document.getElementById('likeBtn');
-  const countEl = document.getElementById('likeCount');
-  const n = count || 0;
-
-  countEl.textContent = `${n} ${n === 1 ? 'like' : 'likes'}`;
-  if (myLike) {
-    btn.classList.add('liked');
-    btn.innerHTML = '<span class="like-icon">♥</span><span>Liked</span>';
-  }
+// Likes are scoped by a random local token; raw visitor tokens are never public.
+let likedHere=false;
+function renderLikes(result) {
+  likedHere=!!result.liked;
+  const btn=document.getElementById('likeBtn'), n=Number(result.count)||0;
+  btn.classList.toggle('liked',likedHere);
+  btn.innerHTML=likedHere?'<span>♥ Liked</span>':'<span>♡ Like this post</span>';
+  document.getElementById('likeCount').textContent=n+' '+(n===1?'like':'likes');
 }
-
+async function loadLikes(postId) {
+  if(!sb)return;
+  const {data,error}=await sb.rpc('portfolio_like_state',{p_post_id:postId,p_token:getFingerprint()});
+  if(error){document.getElementById('likeCount').textContent='Likes temporarily unavailable';return;}
+  renderLikes(data);
+}
 async function toggleLike() {
-  if (!sb) return;
-  const fp  = getFingerprint();
-  const btn = document.getElementById('likeBtn');
-  const countEl = document.getElementById('likeCount');
-
-  const { data: existing } = await sb.from('likes').select('id').eq('post_id', currentPostId).eq('fingerprint', fp).maybeSingle();
-
-  if (existing) {
-    // Unlike
-    await sb.from('likes').delete().eq('id', existing.id);
-    btn.classList.remove('liked');
-    btn.innerHTML = '<span class="like-icon">♡</span><span>Like this post</span>';
-    const cur = parseInt(countEl.textContent) || 1;
-    const n = Math.max(0, cur - 1);
-    countEl.textContent = `${n} ${n === 1 ? 'like' : 'likes'}`;
-  } else {
-    // Like
-    await sb.from('likes').insert({ post_id: currentPostId, fingerprint: fp });
-    btn.classList.add('liked');
-    btn.innerHTML = '<span class="like-icon">♥</span><span>Liked</span>';
-    const cur = parseInt(countEl.textContent) || 0;
-    const n = cur + 1;
-    countEl.textContent = `${n} ${n === 1 ? 'like' : 'likes'}`;
-  }
+  if(!sb||!currentPostId)return;
+  const btn=document.getElementById('likeBtn');btn.disabled=true;
+  try{
+    const {data,error}=await sb.rpc('portfolio_set_like',{p_post_id:currentPostId,p_token:getFingerprint(),p_liked:!likedHere});
+    if(error)throw error;renderLikes(data);
+  }catch{document.getElementById('likeCount').textContent='Could not save like. Try again.';}
+  finally{btn.disabled=false;}
 }
 
 // ── COMMENTS ──
@@ -484,7 +468,7 @@ async function loadComments(postId) {
     return `
       <div class="comment-item">
         <div class="comment-header">
-          <div class="comment-avatar">${initials}</div>
+          <div class="comment-avatar">${escapeText(initials)}</div>
           <span class="comment-name">${escHtml(c.name)}</span>
           <span class="comment-date">${fmt}</span>
         </div>

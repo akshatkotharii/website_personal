@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self';">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Blog — Akshat Kothari</title>
   <meta name="description" content="Writing on tech, research, startups, and daily life by Akshat Kothari.">
@@ -68,13 +70,15 @@
       .blog-all-title { font-size: 17px; }
     }
   </style>
+<script src="../js/vendor/purify.min.js"></script>
+<script src="../js/safety.js"></script>
 </head>
 <body>
 <nav>
   <a href="../index.html" class="nav-logo">Akshat Kothari</a>
   <ul class="nav-links">
     <li><a href="../index.html#about">About</a></li>
-    <li><a href="../index.html#projects">Projects</a></li>
+    <li><a href="../index.html#notebook">Projects</a></li>
     <li><a href="../index.html#experience">Experience</a></li>
     <li><a href="index.html" style="color:var(--black)">Blog</a></li>
     <li><a href="../index.html#contact">Contact</a></li>
@@ -84,7 +88,7 @@
 </nav>
 <div class="nav-drawer" id="navDrawer">
   <a href="../index.html#about">About</a>
-  <a href="../index.html#projects">Projects</a>
+  <a href="../index.html#notebook">Projects</a>
   <a href="../index.html#experience">Experience</a>
   <a href="index.html">Blog</a>
   <a href="../index.html#contact">Contact</a>
@@ -153,7 +157,7 @@ async function loadPosts() {
     </div>`).join('');
 
   const sb = getSupabase();
-  let posts = [];
+  let posts = [], databaseLoaded = false;
 
   if (sb) {
     try {
@@ -163,12 +167,12 @@ async function loadPosts() {
         .range(page * PER_PAGE, (page + 1) * PER_PAGE - 1);
       if (activeFilter !== 'all') q = q.eq('category', activeFilter);
       const { data, error, count } = await q;
-      if (!error) { posts = data; totalCount = count; }
+      if (!error) { posts = data || []; totalCount = count || 0; databaseLoaded = true; }
     } catch(e) { console.warn(e); }
   }
 
   // static fallback
-  if (!posts.length && page === 0) {
+  if (!databaseLoaded && page === 0) {
     const slugs = ['why-i-started-this-site','first-iot-project-lessons','energy-nudges-research-notes'];
     for (const slug of slugs) {
       try { const r = await fetch(`posts/${slug}.json`); if (r.ok) { const p = await r.json(); if (activeFilter==='all'||(p.cat||p.category)===activeFilter) posts.push(p); } } catch(_) {}
@@ -186,12 +190,12 @@ async function loadPosts() {
   posts.forEach(p => {
     const d = new Date(p.created_at || p.date);
     const a = document.createElement('a');
-    a.href = `post.html?slug=${p.slug}`;
+    a.href = `post.html?slug=${encodeURIComponent(p.slug)}`;
     a.className = 'blog-all-row';
     a.innerHTML = `
       <div class="blog-all-date">${d.toLocaleString('en',{month:'short'})} ${d.getDate()}<br>${d.getFullYear()}</div>
-      <div><div class="blog-all-title">${p.title}</div><div class="blog-all-excerpt">${p.excerpt||''}</div></div>
-      <div class="blog-all-tag">${p.category||p.cat||'personal'}</div>`;
+      <div><div class="blog-all-title">${escapeText(p.title)}</div><div class="blog-all-excerpt">${escapeText(p.excerpt||'')}</div></div>
+      <div class="blog-all-tag">${escapeText(p.category||p.cat||'personal')}</div>`;
     list.appendChild(a);
   });
 

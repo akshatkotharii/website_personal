@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self';">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>akshat kothari 🙃</title>
   <meta name="description" content="Second-year engineering student at Plaksha University. Researching clean energy, building IoT systems, learning AI/ML.">
@@ -9,6 +11,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/notebook.css">
+<script src="js/vendor/purify.min.js"></script>
+<script src="js/safety.js"></script>
 </head>
 <body>
 
@@ -17,7 +23,7 @@
   <a href="#home" class="nav-logo">Akshat Kothari</a>
   <ul class="nav-links">
     <li><a href="#about">About</a></li>
-    <li><a href="#projects">Projects</a></li>
+    <li><a href="#notebook">Notebook</a></li>
     <li><a href="#experience">Experience</a></li>
     <li><a href="blog/index.html">Blog</a></li>
     <li><a href="#contact">Contact</a></li>
@@ -32,76 +38,12 @@
 <div class="nav-drawer" id="navDrawer">
   <a href="#about">About</a>
   <a href="#now">Now</a>
-  <a href="#projects">Projects</a>
+  <a href="#notebook">Projects</a>
   <a href="#experience">Experience</a>
   <a href="blog/index.html">Blog</a>
   <a href="#contact">Contact</a>
 </div>
 
-<!-- ═══════════════════════════ TICKER ════════════════════════ -->
-<div class="ticker" aria-hidden="true">
-  <div class="ticker-dot"></div>
-  <div class="ticker-track">
-    <!-- <div class="ticker-inner">
-      <span>Engineering student figuring out how to bring tech into traditional business</span>
-      <span>·</span>
-      <span>Researching smart energy nudges @ IVCCE, Plaksha University</span>
-      <span>·</span>
-      <span>Learning: ML algorithms, AI, and how VCs think</span>
-      <span>·</span>
-      <span>From a textile family — I've seen first-hand what tech can fix in manufacturing</span>
-      <span>·</span>
-      <span>Open to: internships, research collabs, interesting conversations</span>
-      <span>·</span>
-      <span>Engineering student figuring out how to bring tech into traditional business</span>
-      <span>·</span>
-      <span>Researching smart energy nudges @ IVCCE, Plaksha University</span>
-      <span>·</span>
-      <span>Learning: ML algorithms, AI, and how VCs think</span>
-      <span>·</span>
-      <span>From a textile family — I've seen first-hand what tech can fix in manufacturing</span>
-      <span>·</span>
-      <span>Open to: internships, research collabs, interesting conversations</span>
-    </div> -->
-    <div class="ticker-inner">
-      <span>Currently: Researching smart nudging systems @ IVCCE, Plaksha University</span>
-      <span>·</span>
-      <span>Building: IoT Laundry Scheduler with smart socket + web dashboard</span>
-      <span>·</span>
-      <span>Learning: Machine learning algorithms &amp; AI fundamentals</span>
-      <span>·</span>
-      <span>Open to: Internships &amp; research collaborations</span>
-      <span>·</span>
-      <span>Still figuring things out — one project at a time</span>
-      <span>·</span>
-      <span>Always down for a good conversation and a better question</span>
-      <span>·</span>
-      <span>Curious about startups, venture capital, and how ideas scale</span>
-      <span>·</span>
-      <span>Obsessed with finding leverage through technology</span>
-      <span>·</span>
-      <span>Exploring the intersection of innovation, technology and business</span>
-      <span>·</span>
-      <span>Currently: Researching smart nudging systems @ IVCCE, Plaksha University</span>
-      <span>·</span>
-      <span>Building: IoT Laundry Scheduler with smart socket + web dashboard</span>
-      <span>·</span>
-      <span>Learning: Machine learning algorithms &amp; AI fundamentals</span>
-      <span>·</span>
-      <span>Open to: Internships &amp; research collaborations</span>
-      <span>·</span>
-      <span>Still figuring things out — one project at a time</span>
-      <span>·</span>
-      <span>Always down for a good conversation and a better question</span>
-      <span>·</span>
-      <span>Curious about startups, venture capital, and how ideas scale</span>
-      <span>·</span>
-      <span>Obsessed with finding leverage through technology</span>
-      <span>·</span>
-      <span>Exploring the intersection of innovation, technology and business</span>
-    </div>
-  </div>
-</div>
 <!-- ═══════════════════════════ HERO ═════════════════════════ -->
 <section id="home">
   <div class="container">
@@ -110,17 +52,15 @@
       <!-- LEFT: TEXT -->
       <div>
         <div class="hero-eyebrow">Engineering · Builder · Learning in public</div>
-        <h1 class="hero-title">
-         Always <br>
-          <em>exploring, tinkering and thinking!</em><br>
-        </h1>
+        <h1 class="hero-title">A curious mind.<br><em>An open notebook.</em></h1>
         <p class="hero-sub">
-          Hi, I’m Akshat. I’m the kind of person who goes down rabbit holes. One day reading about AI agents, another day researching on energy systems, and somehow ending up building random things at 2am. Scroll to see projects, research notes and how we can collaborate together. 
+          Hi, I’m Akshat. I build things for everyday problems, research smarter energy habits, and follow my curiosity. This is where the work—and the thinking behind it—lives.
         </p>
         <div class="hero-ctas">
-          <a href="#projects" class="btn-dark">See my work</a>
+          <a href="#notebook" class="btn-dark">Open my notebook ↗</a>
           <a href="#blog" class="btn-link">Read the blog →</a>
         </div>
+        <a class="hero-notebook-invite" href="#notebook">a few things on my mind…</a>
         <div class="hero-stats">
           <div>
             <div class="hero-stat-label">Studying at</div>
@@ -149,11 +89,12 @@
     <div class="about-grid">
       <div class="about-body">
         <p>I'm Akshat — an engineering student who's more interested in what you <strong>do</strong> with knowledge than in having it. Everything I am working on is a learning curve, and that's exactly how I like it.</p>
+        <details><summary>A little more about me</summary>
         <p>My sweet spot is the intersection of <strong>AI, data, and the mundane everyday</strong> — the kind of problems people deal with but never think to solve with technology. If a system can think smarter so a person doesn't have to, I want to build it. With just this in mind, I've been tinkering around my father's textile manufacturing systems since years now! 🙃</p>
         <p>Beyond the technical, I'm genuinely fascinated by <strong>how ideas become companies</strong>. I follow the VC and startup ecosystem closely — what accelerators are betting on, which early-stage theses are playing out. I think a lot about what it takes to go from a working prototype to something people actually care about. Lately, I’ve been also fascinated by the stock market — not just the numbers, but the ideas, businesses, and decisions behind them :) </p>
         <p>Outside screens: I play squash, get lost in music, and travel whenever I can — usually to somewhere I've never been. I’m also always up for good coffee and have a soft spot for exploring new tech products and gadgets.</p>
         <p>I work best in teams. I think out loud, ask questions that go sideways in useful directions, and genuinely believe the best ideas come from people who are different from you.</p>
-        <p>You can find out more about me by my blogs! </p>
+        </details>
       </div>
       <div class="about-cards">
         <div class="about-card">
@@ -188,73 +129,22 @@
   </div>
 </section>
 
-<!-- ═══════════════════════════ PROJECTS ═════════════════════ -->
-<section id="projects">
+<section id="notebook" aria-labelledby="notebookHeading">
   <div class="container">
-    <p class="section-label">What I've built</p>
-    <h2 class="section-title">Projects</h2>
-    <div class="section-rule"></div>
-    <div class="projects-grid">
-
-      <div class="project-card">
-        <div class="project-num">01</div>
-        <h3 class="project-title">Smart Nudging System</h3>
-        <p class="project-desc">A behaviour-change system to reduce household energy consumption. Built with IVCCE — Plaksha's clean energy research centre. Using data and timely alerts to nudge households toward lower usage without friction.</p>
-        <div class="project-tags">
-          <span class="project-tag">Python</span>
-          <span class="project-tag">Data Analysis</span>
-          <span class="project-tag">Energy Systems</span>
-          <span class="project-tag">Research</span>
-        </div>
-        <div class="project-status">
-          <div class="status-dot green"></div>
-          <span class="status-label">Active research</span>
-        </div>
-        <div class="project-links">
-          <a href="#" class="project-link" title="Research paper / notes">📄 Notes</a>
-          <a href="#" class="project-link" title="GitHub">⌥ GitHub</a>
-        </div>
-      </div>
-
-      <div class="project-card">
-        <div class="project-num">02</div>
-        <h3 class="project-title">IoT Laundry Scheduler</h3>
-        <p class="project-desc">A smart laundry scheduling system powered by an IoT socket and a full web dashboard. Monitors energy draw, detects cycle completion, and schedules optimal wash times automatically.</p>
-        <div class="project-tags">
-          <span class="project-tag">IoT</span>
-          <span class="project-tag">Web Dashboard</span>
-          <span class="project-tag">Smart Socket</span>
-        </div>
-        <div class="project-status">
-          <div class="status-dot amber"></div>
-          <span class="status-label">In progress</span>
-        </div>
-        <div class="project-links">
-          <a href="#" class="project-link" title="GitHub">⌥ GitHub</a>
-          <a href="#" class="project-link" title="Live demo">↗ Demo</a>
-        </div>
-      </div>
-
-      <div class="project-card dashed">
-        <div class="project-num" style="opacity:0.4">03</div>
-        <h3 class="project-title" style="color:var(--gray-400)">Next project loading…</h3>
-        <p class="project-desc" style="color:var(--gray-400)">Exploring problems at the intersection of ML and everyday life. Watch this space — or read the blog to follow along.</p>
-        <div class="project-status">
-          <div class="status-dot gray"></div>
-          <span class="status-label">Ideation</span>
-        </div>
-      </div>
-
-      <div class="project-card cta">
-        <div class="project-num" style="color:var(--accent)">→</div>
-        <h3 class="project-title" style="color:var(--accent)">Have an idea?</h3>
-        <p class="project-desc" style="color:var(--accent-dark)">Open to research collabs, interesting problems, and building with people who care about real-world impact.</p>
-        <a href="#contact" class="btn-link" style="color:var(--accent);border-color:var(--accent);font-size:13px;margin-top:0.5rem">Let's talk</a>
-      </div>
-
+    <div class="notebook-heading"><div><p class="section-label">A living notebook</p><h2 class="section-title" id="notebookHeading">In the middle of things.</h2><p class="notebook-intro">What I’m building, learning and figuring out. Pick a page; there’s a person behind every project.</p></div><span class="hand-note">come have a look ↙</span></div>
+    <div class="notebook-filters" role="group" aria-label="Project chapters">
+      <button type="button" data-notebook-filter="now" aria-pressed="true">On my desk</button>
+      <button type="button" data-notebook-filter="all" aria-pressed="false">All chapters</button>
+      <button type="button" data-notebook-filter="shipped" aria-pressed="false">Shipped</button>
+      <button type="button" data-notebook-filter="archive" aria-pressed="false">On the shelf</button>
     </div>
+    <button type="button" id="notebookLatest" class="notebook-latest" hidden></button>
+    <div id="notebookBoard" class="notebook-board" aria-live="polite"></div>
+    <p class="notebook-footnote">On the shelf holds paused and closed chapters. Finished work stays in Shipped.</p>
+    <noscript><p>Current projects: Spin Sync, IVCCE smart energy nudging, Outreach Brain, this website, and an ML learning sprint planned for 5 September 2026.</p></noscript>
   </div>
 </section>
+<dialog id="notebookDialog" class="notebook-dialog" aria-labelledby="notebookTitle"></dialog>
 
 <!-- ═══════════════════════════ EXPERIENCE ═══════════════════ -->
 <section id="experience">
@@ -308,11 +198,10 @@
     </p>
     <a href="mailto:akshat@example.com" class="contact-email-link">akshatpkothari@gmail.com</a>
     <div class="contact-links">
-      <a href="#" class="contact-link">GitHub</a>
-      <a href="https://www.linkedin.com/in/akshat-kothari-12402a237/" target="_blank" class="contact-link">LinkedIn</a>
-      <a href="#" class="contact-link">Substack</a>
-      <a href="https://x.com/AkshatKoth39524" target="_blank" class="contact-link">X</a>
-      <a href="https://www.instagram.com/akshattt_k/" target="_blank" class="contact-link">Instagram</a>
+      <a href="https://github.com/akshatkotharii" class="contact-link" target="_blank" rel="noopener noreferrer">GitHub</a>
+      <a href="https://www.linkedin.com/in/akshat-kothari-12402a237/" target="_blank" rel="noopener noreferrer" class="contact-link">LinkedIn</a>
+      <a href="https://x.com/AkshatKoth39524" target="_blank" rel="noopener noreferrer" class="contact-link">X</a>
+      <a href="https://www.instagram.com/akshattt_k/" target="_blank" rel="noopener noreferrer" class="contact-link">Instagram</a>
     </div>
   </div>
 
@@ -320,7 +209,7 @@
   <div class="container">
     <div class="footer-bar">
       <div>
-        <p class="footer-copy">© 2025 Akshat Kothari · Updated weekly </p>
+        <p class="footer-copy">© 2026 Akshat Kothari · A work in progress </p>
       </div>
     </div>
   </div>
@@ -331,5 +220,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabase-config.js"></script>
 <script src="js/main.js"></script>
+<script src="js/notebook-data.js"></script>
+<script src="js/notebook.js"></script>
 </body>
 </html>

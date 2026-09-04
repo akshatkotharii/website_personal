@@ -31,7 +31,7 @@ Set these **secrets in Supabase → Edge Functions → Secrets**:
 - `RESEND_API_KEY`: your Resend API key.
 - `RESEND_FROM_EMAIL`: a sender on your verified Resend domain.
 
-Deploy `supabase/functions/notebook-mail/index.ts` as an Edge Function named `notebook-mail`, with gateway JWT verification disabled because the function validates admin sessions itself. `SUPABASE_URL` and `SUPABASE_ANON_KEY` are provided by Supabase automatically. Existing admin-only Resend settings are supported as a fallback; secrets are preferred.
+Deploy `supabase/functions/notebook-mail/index.ts` as an Edge Function named `notebook-mail`, keeping gateway JWT verification enabled. The function also validates the session and checks the admin allowlist. `SUPABASE_URL` and `SUPABASE_ANON_KEY` are provided by Supabase automatically. Existing admin-only Resend settings are supported as a fallback; secrets are preferred.
 
 No service-role key is needed. The function validates the administrator's session and uses database policies. The envelope button sends a link and excerpt from an already-published post. Each recipient receives a separate email and an unsubscribe link. Successful sends are recorded and skipped on retries; provider idempotency protects a retry after a transient logging failure within its retention window. Review failed sends before retrying after that window.
 

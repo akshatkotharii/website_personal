@@ -342,6 +342,13 @@ nav {
 .tl-role  { font-size: 15px; font-weight: 500; margin-bottom: 2px; }
 .tl-org   { font-size: 13px; color: var(--accent); font-weight: 500; margin-bottom: 0.5rem; }
 .tl-desc  { font-size: 13.5px; color: var(--gray-600); line-height: 1.7; }
+.tl-preview { display: -webkit-box; overflow: hidden; margin-top: .75rem; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.tl-details { margin-top: .25rem; }
+.tl-details summary { cursor: pointer; width: fit-content; color: var(--ink-blue); font: 12px var(--mono); list-style: none; }
+.tl-details summary::-webkit-details-marker { display: none; }
+.tl-details[open] { margin-top: .9rem; }
+.tl-details[open] summary { margin-bottom: .75rem; }
+.tl-details[open] .tl-desc { padding-top: .75rem; border-top: 1px solid var(--gray-100); }
 
 /* ---------- BLOG ---------- */
 #blog {

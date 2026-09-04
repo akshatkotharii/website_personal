@@ -185,7 +185,11 @@ async function loadExperience() {
       <div>
         <div class="tl-role">${escapeText(exp.role)}</div>
         <div class="tl-org">${escapeText(exp.org)}</div>
-        <p class="tl-desc">${escapeText(exp.description)}</p>
+        <p class="tl-desc tl-preview">${escapeText(exp.description)}</p>
+        <details class="tl-details">
+          <summary>Read more <span aria-hidden="true">↘</span></summary>
+          <p class="tl-desc">${escapeText(exp.description)}</p>
+        </details>
       </div>
     </div>
   `).join('');

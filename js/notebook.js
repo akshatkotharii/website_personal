@@ -40,15 +40,15 @@
     dialog.innerHTML = `<div class="notebook-page">
       <div class="notebook-page-top"><span class="note-kind">${escape(p.kind)} / ${labels[p.status]}</span><button type="button" class="notebook-close" aria-label="Close notebook">×</button></div>
       <h2 id="notebookTitle">${escape(p.title)}</h2><p class="notebook-deck">${escape(p.summary)}</p>
-      <div class="notebook-tabs" role="tablist" aria-label="Explore this chapter">${['doing','thinking','trail'].map((t,i) => `<button type="button" role="tab" id="note-tab-${t}" aria-controls="note-panel-${t}" aria-selected="${i===0}" data-note-tab="${t}">${t[0].toUpperCase()+t.slice(1)}</button>`).join('')}</div>
-      <div id="note-panel-doing" role="tabpanel" aria-labelledby="note-tab-doing" data-note-panel="doing">
+      <div class="notebook-tabs" role="tablist" aria-label="Explore this chapter">${['now','trail'].map((t,i) => `<button type="button" role="tab" id="note-tab-${t}" aria-controls="note-panel-${t}" aria-selected="${i===0}" data-note-tab="${t}">${t[0].toUpperCase()+t.slice(1)}</button>`).join('')}</div>
+      <div id="note-panel-now" role="tabpanel" aria-labelledby="note-tab-now" data-note-panel="now">
         <div class="notebook-focus"><span class="hand-note">on my desk</span><p>${escape(p.current || 'A new chapter. Notes coming as it develops.')}</p></div>
+        ${p.thinking ? `<div class="notebook-next"><span class="hand-note">why this way</span><p>${escape(p.thinking)}</p></div>`:''}
         ${p.start_date ? `<p class="notebook-date">${p.status === 'planned' ? 'Planned start' : 'Started'} · ${date(p.start_date+'T12:00:00+05:30')}</p>` : ''}
         ${p.id==='ml-sprint' ? `<div class="sprint-caption"><span>Learning trail</span><span>${Number(p.progress)||0} / 30 days completed</span></div><div class="sprint-days" aria-label="${Number(p.progress)||0} of 30 days completed">${Array.from({length:30},(_,i) => `<button type="button" data-sprint-day="${i+1}" class="sprint-day ${i < (p.progress||0)?'done':''}" aria-label="Day ${i+1}${i<(p.progress||0)?', completed':''}">${i+1}</button>`).join('')}</div><div id="sprintDayNote" class="sprint-day-note" aria-live="polite"></div><p class="notebook-caption">Tap a day to explore its notes. Progress follows completed work, not the calendar.</p>` : ''}
         ${p.next_step ? `<div class="notebook-next"><span class="hand-note">next little step</span><p>${escape(p.next_step)}</p></div>`:''}
         <div class="notebook-links">${link(p.url,'Explore project')}${link(p.thread_url,'Read the thread')}</div>
       </div>
-      <div id="note-panel-thinking" role="tabpanel" aria-labelledby="note-tab-thinking" data-note-panel="thinking" hidden><span class="hand-note">behind the decisions</span><blockquote class="notebook-thought">${escape(p.thinking || 'Still thinking this through. I’ll share the questions and decisions here as they take shape.')}</blockquote><p class="notebook-caption">A work in progress, including the thinking.</p></div>
       <div id="note-panel-trail" role="tabpanel" aria-labelledby="note-tab-trail" data-note-panel="trail" hidden><span class="hand-note">notes along the way</span><div class="notebook-trail">${logs.length ? logs.map(e => `<article><time datetime="${escape(e.created_at)}">${date(e.created_at)}</time><h3>${escape(e.title)}</h3><p>${escape(e.body)}</p>${link(e.url,'Read more')}</article>`).join('') : '<p class="notebook-empty">No updates published yet. The first page is still waiting.</p>'}</div>${link(p.thread_url,'Open the full blog thread')}</div>
       ${p.updated_at ? `<p class="notebook-updated">Last edited ${date(p.updated_at)}</p>`:''}
     </div>`;
@@ -69,7 +69,7 @@
     if(day){const number=Number(day.dataset.sprintDay),notes=entries.filter(x=>x.project_id===selected.id&&x.sprint_day===number);dialog.querySelector('#sprintDayNote').innerHTML='<strong>Day '+number+'</strong>'+ (notes.length?notes.map(x=>'<p>'+escape(x.title)+'</p><p>'+escape(x.body)+'</p>').join(''):'<p>No note published for this day yet.</p>');dialog.querySelectorAll('[data-sprint-day]').forEach(x=>x.setAttribute('aria-pressed',String(x===day)));}
     if(e.target===dialog){const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialog.close();}
   });
-  dialog.addEventListener('keydown',e=>{if(!e.target.matches('[data-note-tab]')||!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();const tabs=[...dialog.querySelectorAll('[data-note-tab]')];let i=tabs.indexOf(e.target);i=e.key==='Home'?0:e.key==='End'?2:(i+(e.key==='ArrowRight'?1:2))%3;tabs[i].focus();showTab(tabs[i].dataset.noteTab);});
+  dialog.addEventListener('keydown',e=>{if(!e.target.matches('[data-note-tab]')||!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();const tabs=[...dialog.querySelectorAll('[data-note-tab]')];let i=tabs.indexOf(e.target);i=e.key==='Home'?0:e.key==='End'?tabs.length-1:(i+(e.key==='ArrowRight'?1:tabs.length-1))%tabs.length;tabs[i].focus();showTab(tabs[i].dataset.noteTab);});
   dialog.addEventListener('close',()=>{document.body.classList.remove('notebook-is-open');trigger?.focus();});
   async function load() {
     projects=window.NOTEBOOK_SEED;render();

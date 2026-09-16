@@ -24,7 +24,7 @@
       ${input('title','Chapter name *',p.title)}${input('summary','One-sentence introduction',p.summary)}
       <div class="nb-pair"><div>${select('kind','Kind',kinds,p.kind)}</div><div>${select('status','Status',statuses,p.status)}</div></div>
       <p class="nb-help">Shipped stays in Shipped; paused and dropped move to On the shelf. Pin up to five chapters to your desk.</p>
-      ${area('current','What are you doing?',p.current)}${area('thinking','What are you thinking? Why does it matter?',p.thinking)}${area('next_step','Next small step',p.next_step)}
+      ${area('current','Now — what are you doing?',p.current)}${area('thinking','Why this way? / open questions (optional)',p.thinking)}${area('next_step','Next small step',p.next_step)}
       <div class="nb-pair"><div>${input('url','Project link',p.url)}</div><div>${input('thread_url','Blog thread link',p.thread_url)}</div></div>
       <div class="nb-pair"><div>${input('start_date','Start date (optional)',p.start_date,'date')}</div><div>${input('sort_order','Display order',p.sort_order,'number')}</div></div>
       ${p.id==='ml-sprint'?input('progress','ML days completed (0–30)',p.progress??0,'number'):''}

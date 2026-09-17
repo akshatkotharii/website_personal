@@ -16,8 +16,6 @@ akshat-portfolio/
 │   ├── post.html       ← Single post reader (reads ?slug= from URL)
 │   └── posts/          ← One JSON file per blog post
 │       ├── why-i-started-this-site.json
-│       ├── first-iot-project-lessons.json
-│       └── energy-nudges-research-notes.json
 └── README.md
 ```
 

@@ -192,15 +192,11 @@ nav {
 }
 .hero-title em { font-style: italic; color: var(--accent); }
 .hero-manifesto { display: inline-flex; flex-wrap: wrap; gap: 0 .22em; }
-.hero-manifesto span { position: relative; display: inline-block; transform-origin: 50% 85%; animation: manifesto-settle .55s cubic-bezier(.2,.75,.25,1) both; }
-.hero-manifesto span::after { content: ''; position: absolute; left: .04em; right: .04em; bottom: .04em; height: .08em; background: currentColor; border-radius: 100%; opacity: .42; transform: scaleX(.72) rotate(-1.5deg); transform-origin: left; transition: transform .18s ease, opacity .18s ease; }
-.hero-manifesto span:nth-child(2) { animation-delay: .08s; }
-.hero-manifesto span:nth-child(3) { animation-delay: .16s; }
-.hero-manifesto span:nth-child(2)::after { transform: scaleX(.82) rotate(1deg); }
-.hero-manifesto span:nth-child(3)::after { transform: scaleX(.76) rotate(-.5deg); }
-.hero-manifesto span:hover, .hero-manifesto span:focus-visible { transform: translateY(-.07em) rotate(-1deg); }
-.hero-manifesto span:hover::after, .hero-manifesto span:focus-visible::after { opacity: .88; transform: scaleX(1.02) rotate(-1deg); }
-@keyframes manifesto-settle { from { transform: translateY(.1em); } to { transform: translateY(0); } }
+.hero-manifesto span { display: inline-block; color: var(--accent); background: linear-gradient(105deg,var(--accent) 0%,var(--accent) 34%,#7776ff 47%,#d2d2ff 50%,#7776ff 53%,var(--accent) 66%,var(--accent) 100%); background-size: 235% 100%; background-position: 100% 0; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: ink-pass 5.5s ease-in-out infinite; }
+.hero-manifesto span:nth-child(2) { animation-delay: .35s; }
+.hero-manifesto span:nth-child(3) { animation-delay: .7s; }
+.hero-manifesto span:hover { animation-duration: 1.7s; }
+@keyframes ink-pass { 0%,20% { background-position: 100% 0; } 55%,65% { background-position: 0 0; } 100% { background-position: -100% 0; } }
 
 .hero-sub {
   font-size: clamp(15px, 2vw, 17px); font-weight: 300; color: var(--gray-600);

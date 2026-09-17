@@ -124,6 +124,7 @@
 <script>
 const PER_PAGE = 10;
 let page = 0, totalCount = 0, activeFilter = 'all';
+const STATIC_POST_SLUGS = ['why-i-started-this-site','first-iot-project-lessons','energy-nudges-research-notes','five-days-in-singapore'];
 
 // mobile nav
 const toggle = document.getElementById('navToggle');
@@ -171,13 +172,28 @@ async function loadPosts() {
     } catch(e) { console.warn(e); }
   }
 
-  // static fallback
-  if (!databaseLoaded && page === 0) {
-    const slugs = ['why-i-started-this-site','first-iot-project-lessons','energy-nudges-research-notes'];
-    for (const slug of slugs) {
-      try { const r = await fetch(`posts/${slug}.json`); if (r.ok) { const p = await r.json(); if (activeFilter==='all'||(p.cat||p.category)===activeFilter) posts.push(p); } } catch(_) {}
+  // Website-hosted posts remain available in the blog, but never feed the home-page cards.
+  if (page === 0) {
+    const staticPosts = [];
+    for (const slug of STATIC_POST_SLUGS) {
+      try {
+        const r = await fetch(`posts/${slug}.json`);
+        if (r.ok) {
+          const p = await r.json();
+          if (activeFilter === 'all' || (p.cat || p.category) === activeFilter) staticPosts.push(p);
+        }
+      } catch(_) {}
     }
-    totalCount = posts.length;
+    if (!databaseLoaded) {
+      posts = staticPosts;
+      totalCount = posts.length;
+    } else {
+      const newStaticPosts = staticPosts.filter(p => !posts.some(dbPost => dbPost.slug === p.slug));
+      posts = [...posts, ...newStaticPosts]
+        .sort((a, b) => new Date(b.created_at || b.date) - new Date(a.created_at || a.date))
+        .slice(0, PER_PAGE);
+      totalCount += newStaticPosts.length;
+    }
   }
 
   if (!posts.length) {

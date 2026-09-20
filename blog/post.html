@@ -223,7 +223,6 @@
   <a href="../index.html" class="nav-logo">Akshat Kothari</a>
   <ul class="nav-links">
     <li><a href="../index.html#about">About</a></li>
-    <li><a href="../index.html#now">Now</a></li>
     <li><a href="../index.html#notebook">Projects</a></li>
     <li><a href="../index.html#experience">Experience</a></li>
     <li><a href="index.html">Blog</a></li>
@@ -236,7 +235,6 @@
 </nav>
 <div class="nav-drawer" id="navDrawer">
   <a href="../index.html#about">About</a>
-  <a href="../index.html#now">Now</a>
   <a href="../index.html#notebook">Projects</a>
   <a href="index.html">Blog</a>
   <a href="../index.html#contact">Contact</a>
@@ -288,9 +286,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!slug) { showNotFound(wrap); return; }
 
   let post = null;
+  const staticSlugs = new Set(['why-i-started-this-site', 'five-days-in-singapore']);
+
+  // Repo-backed posts should not wait for a failed database lookup first.
+  if (staticSlugs.has(slug)) {
+    try {
+      const r = await fetch(`../blog/posts/${slug}.json`);
+      if (r.ok) post = await r.json();
+    } catch (_) {}
+  }
 
   // 1. Try Supabase
-  if (sb) {
+  if (!post && sb) {
     try {
       const { data, error } = await sb.from('posts').select('*').eq('slug', slug).single();
       if (!error && data) { post = data; currentPostId = data.id; }

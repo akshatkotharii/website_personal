@@ -14,6 +14,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/notebook.css">
   <link rel="stylesheet" href="css/experience-refresh.css">
+  <link rel="stylesheet" href="css/margins-preview.css">
 <script src="js/vendor/purify.min.js"></script>
 <script src="js/safety.js"></script>
 </head>
@@ -27,6 +28,7 @@
     <li><a href="#notebook">Notebook</a></li>
     <li><a href="#experience">Experience</a></li>
     <li><a href="blog/index.html">Blog</a></li>
+    <li><a href="margins.html">Margins</a></li>
     <li><a href="#contact">Contact</a></li>
   </ul>
   <a href="#contact" class="nav-cta">Let's connect →</a>
@@ -42,6 +44,7 @@
   <a href="#notebook">Projects</a>
   <a href="#experience">Experience</a>
   <a href="blog/index.html">Blog</a>
+  <a href="margins.html">Margins</a>
   <a href="#contact">Contact</a>
 </div>
 
@@ -202,6 +205,16 @@
   </div>
 </section>
 
+<section id="marginsPreview" aria-labelledby="marginsPreviewTitle">
+  <div class="container">
+    <p class="section-label">Notes to myself</p>
+    <h2 class="section-title" id="marginsPreviewTitle">Margins</h2>
+    <p class="margins-intro">Small things I want to keep close.</p>
+    <div id="marginsPreviewList" class="margins-preview-list" aria-live="polite"></div>
+    <a href="margins.html" class="margins-open">Open all notes <span aria-hidden="true">↗</span></a>
+  </div>
+</section>
+
 <!-- ═══════════════════════════ BLOG ═════════════════════════ -->
 <section id="blog" style="background:var(--gray-50);">
   <div class="container">
@@ -235,12 +248,11 @@
 <!-- ═══════════════════════════ CONTACT / FOOTER ═════════════ -->
 <section id="contact">
   <div class="container">
-    <p class="section-label">Get in touch</p>
-    <h2 class="section-title">Let's build something,<br>or just talk.</h2>
-    <p class="contact-lead">
-      If you're building something at the intersection of tech and traditional industry — or you think there's a conversation worth having — I'm genuinely open to it. I'm early in my journey and I know it. But I show up, I think, and I follow through.
-    </p>
-    <a href="mailto:akshatpkothari@gmail.com" class="contact-email-link">akshatpkothari@gmail.com</a>
+    <div class="contact-v2-grid"><div><p class="section-label">Say hi</p>
+    <h2 class="section-title">Good ideas get better in company.</h2>
+    <p class="contact-lead">Have a project, question, recommendation, or strange early thought? I'd love to hear it.</p>
+    <a href="mailto:akshatpkothari@gmail.com?subject=Hello%20Akshat" class="contact-primary">Write me an email ↗</a></div>
+    <div class="contact-side"><span class="contact-side-label">Or keep exploring</span><a href="blog/index.html">Read what’s on my mind <span aria-hidden="true">↗</span></a><a href="margins.html">Browse my margins <span aria-hidden="true">↗</span></a><p>No form, no pressure. Say hi when something clicks.</p></div></div>
     <div class="contact-links">
       <a href="https://github.com/akshatkotharii" class="contact-link" target="_blank" rel="noopener noreferrer">GitHub</a>
       <a href="https://www.linkedin.com/in/akshat-kothari-12402a237/" target="_blank" rel="noopener noreferrer" class="contact-link">LinkedIn</a>
@@ -252,9 +264,8 @@
   <!-- Footer bar -->
   <div class="container">
     <div class="footer-bar">
-      <div>
-        <p class="footer-copy">© 2026 Akshat Kothari · A work in progress </p>
-      </div>
+      <p class="footer-copy">© 2026 Akshat Kothari · Still exploring.</p>
+      <div class="footer-v2-links"><a href="#notebook">Notebook</a><a href="blog/index.html">Writing</a><a href="margins.html">Margins</a><a href="#home">Back to top ↑</a></div>
     </div>
   </div>
 </section>
@@ -266,5 +277,6 @@
 <script src="js/main.js"></script>
 <script src="js/notebook-data.js"></script>
 <script src="js/notebook.js"></script>
+<script src="js/margins.js"></script>
 </body>
 </html>

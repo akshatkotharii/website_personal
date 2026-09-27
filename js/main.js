@@ -163,35 +163,29 @@ async function loadExperience() {
   const timeline = document.getElementById('expTimeline');
   if (!timeline) return;
 
-  let entries = [], databaseLoaded = false;
+  let entries = STATIC_EXPERIENCE;
+  const show = index => {
+    const exp = entries[index];
+    if (!exp) return;
+    timeline.querySelectorAll('[data-experience]').forEach(button => button.setAttribute('aria-pressed', String(Number(button.dataset.experience) === index)));
+    timeline.querySelector('#experienceStory').innerHTML = `<p class="experience-story-kicker">A chapter in the story</p><h3>${escapeText(exp.role)}</h3><p class="experience-story-place">${escapeText(exp.org)} · ${escapeText(exp.date_range)}</p><p>${escapeText(exp.description)}</p>`;
+  };
+  const render = () => {
+    timeline.innerHTML = `<div class="experience-points" role="group" aria-label="Experience chapters">${entries.map((exp, i) => `
+      <button type="button" class="experience-point" data-experience="${i}" aria-controls="experienceStory" aria-pressed="${i === 0}">
+        <span class="experience-dot" aria-hidden="true"></span><span class="tl-date">${escapeText(exp.date_range)}</span>
+        <span class="tl-role">${escapeText(exp.role)}</span><span class="tl-org">${escapeText(exp.org)}</span>
+      </button>`).join('')}</div><article id="experienceStory" class="experience-story" aria-live="polite"></article>`;
+    show(0);
+  };
+  timeline.addEventListener('click', event => { const button = event.target.closest('[data-experience]'); if (button) show(Number(button.dataset.experience)); });
+  render();
   const sb = getSupabase();
-
-  if (sb) {
-    try {
-      const { data, error } = await sb
-        .from('experience')
-        .select('*')
-        .order('sort_order', { ascending: true });
-      if (!error && data) { entries = data; databaseLoaded = true; }
-    } catch(e) { console.warn('Experience fetch failed:', e); }
-  }
-
-  // Fall back to static data if DB has nothing
-  if (!databaseLoaded) entries = STATIC_EXPERIENCE;
-
-  timeline.innerHTML = entries.map(exp => `
-    <div class="tl-item">
-      <div class="tl-date">${escapeText(exp.date_range)}</div>
-      <div>
-        <div class="tl-role">${escapeText(exp.role)}</div>
-        <div class="tl-org">${escapeText(exp.org)}</div>
-        <details class="tl-details">
-          <summary><span class="tl-preview">${escapeText(exp.description)}</span><span class="tl-more">Read more <span aria-hidden="true">↘</span></span><span class="tl-less">Show less <span aria-hidden="true">↗</span></span></summary>
-          <p class="tl-desc">${escapeText(exp.description)}</p>
-        </details>
-      </div>
-    </div>
-  `).join('');
+  if (!sb) return;
+  try {
+    const { data, error } = await sb.from('experience').select('*').order('sort_order', { ascending: true });
+    if (!error && data?.length) { entries = data; render(); }
+  } catch(e) { console.warn('Experience fetch failed:', e); }
 }
 
 /* ── RENDER ──────────────────────────────────────────────── */

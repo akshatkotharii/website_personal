@@ -7,25 +7,65 @@
 document.addEventListener('DOMContentLoaded', async () => {
   initNav();
   initSmoothScroll();
+  initAboutTabs();
   await Promise.all([loadBlog(), loadExperience()]);
 });
+
+/* ── ABOUT: choose a thread, keep the page short ──────────── */
+function initAboutTabs() {
+  const root = document.querySelector('[data-about-story]');
+  if (!root) return;
+  const tabs = [...root.querySelectorAll('[data-about-tab]')];
+  const select = tab => {
+    tabs.forEach(item => {
+      const active = item === tab;
+      item.setAttribute('aria-selected', String(active));
+      item.tabIndex = active ? 0 : -1;
+    });
+    root.querySelectorAll('[data-about-panel]').forEach(panel => {
+      panel.hidden = panel.dataset.aboutPanel !== tab.dataset.aboutTab;
+    });
+  };
+  root.addEventListener('click', event => {
+    const tab = event.target.closest('[data-about-tab]');
+    if (tab) select(tab);
+  });
+  root.addEventListener('keydown', event => {
+    const index = tabs.indexOf(event.target);
+    if (index < 0 || !['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault();
+    const next = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : (index + (event.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length;
+    tabs[next].focus();
+    select(tabs[next]);
+  });
+  tabs.forEach((tab, index) => { tab.tabIndex = index ? -1 : 0; });
+}
 
 /* ── NAV ─────────────────────────────────────────────────── */
 function initNav() {
   const toggle = document.getElementById('navToggle');
   const drawer = document.getElementById('navDrawer');
   if (toggle && drawer) {
-    toggle.addEventListener('click', () => {
-      const open = drawer.classList.toggle('open');
+    const setOpen = open => {
+      drawer.classList.toggle('open', open);
       toggle.classList.toggle('open', open);
       toggle.setAttribute('aria-expanded', String(open));
+      toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+      drawer.setAttribute('aria-hidden', String(!open));
       document.body.style.overflow = open ? 'hidden' : '';
+    };
+    toggle.addEventListener('click', () => {
+      setOpen(toggle.getAttribute('aria-expanded') !== 'true');
     });
     drawer.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
-      drawer.classList.remove('open');
-      toggle.classList.remove('open');
-      document.body.style.overflow = '';
+      setOpen(false);
     }));
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && drawer.classList.contains('open')) {
+        setOpen(false);
+        toggle.focus();
+      }
+    });
   }
   // Active section highlight
   const navAs = document.querySelectorAll('.nav-links a');
@@ -70,7 +110,7 @@ async function loadBlog() {
 
   // Try starred posts first; fall back to latest 5.
   let posts = await fetchFeaturedPosts();
-  if (!posts.length) posts = await fetchPosts(5);
+  if (!posts.length) posts = await fetchPosts(4);
 
   if (!posts.length) {
     if (featured) featured.style.display = 'none';
@@ -80,7 +120,7 @@ async function loadBlog() {
 
   renderFeatured(featured, posts[0]);
   grid.innerHTML = '';
-  posts.slice(1).forEach(p => grid.appendChild(makeCard(p)));
+  posts.slice(1, 4).forEach((p, index) => grid.appendChild(makeCard(p, index + 2)));
 }
 
 /* ── FETCH POSTS ─────────────────────────────────────────── */
@@ -93,13 +133,13 @@ async function fetchFeaturedPosts() {
       .select('id, title, slug, category, excerpt, created_at, featured')
       .eq('featured', true)
       .order('created_at', { ascending: false })
-      .limit(5);
+      .limit(4);
     if (!error && data) return data;
   } catch(e) { console.warn('Featured fetch failed:', e); }
   return [];
 }
 
-async function fetchPosts(limit = 5, offset = 0) {
+async function fetchPosts(limit = 4, offset = 0) {
   const sb = getSupabase();
 
   // Try Supabase
@@ -207,18 +247,15 @@ function renderFeatured(el, post) {
     </div>`;
 }
 
-function makeCard(post) {
+function makeCard(post, number) {
   const a = document.createElement('a');
   a.href = `blog/post.html?slug=${encodeURIComponent(post.slug)}`;
-  a.className = 'blog-card';
+  a.className = 'blog-card blog-reading-row';
   a.innerHTML = `
-    <div class="blog-card-top">
-      <span class="blog-row-tag">${escapeText(post.category || post.cat || 'personal')}</span>
-      <span class="blog-card-read">${readTime(post.excerpt)}</span>
-    </div>
-    <h4 class="blog-card-title">${escapeText(post.title)}</h4>
-    <p class="blog-card-excerpt">${escapeText(post.excerpt || '')}</p>
-    <div class="blog-card-date">${fmtDate(post.created_at || post.date)}</div>`;
+    <span class="blog-reading-number">${String(number).padStart(2, '0')}</span>
+    <span class="blog-reading-title">${escapeText(post.title)}</span>
+    <span class="blog-reading-meta">${escapeText(post.category || post.cat || 'personal')} · ${fmtDate(post.created_at || post.date)}</span>
+    <span class="blog-reading-arrow" aria-hidden="true">↗</span>`;
   return a;
 }
 

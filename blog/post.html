@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-E3SGznmg9hGQlAHieSEX2QkW34cxpLDVFVIYXU1roFQ=' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self';">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Blog — Akshat Kothari</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -355,7 +355,7 @@ function renderPost(wrap, post) {
 
     <!-- LIKES -->
     <div class="post-engagement" id="engagementBar">
-      <button class="like-btn" id="likeBtn" onclick="toggleLike()">
+      <button class="like-btn" id="likeBtn" type="button">
         <span class="like-icon">♡</span>
         <span>Like this post</span>
       </button>
@@ -375,7 +375,7 @@ function renderPost(wrap, post) {
           <input class="comment-input" id="commentEmail" placeholder="Email (not shown)" type="email" maxlength="120">
         </div>
         <textarea class="comment-textarea" id="commentMsg" placeholder="Write a comment…" maxlength="1000"></textarea>
-        <button class="comment-submit" id="commentSubmit" onclick="submitComment()">Post comment →</button>
+        <button class="comment-submit" id="commentSubmit" type="button">Post comment →</button>
         <div class="comment-notice" id="commentNotice"></div>
       </div>
     </div>
@@ -546,6 +546,8 @@ function showNotFound(wrap) {
 function escHtml(s) {
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+document.getElementById('likeBtn')?.addEventListener('click', toggleLike);
+document.getElementById('commentSubmit')?.addEventListener('click', submitComment);
 </script>
 </body>
 </html>

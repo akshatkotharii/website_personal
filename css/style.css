@@ -673,6 +673,7 @@ nav {
 .blog-featured-excerpt {
   font-size: 15px; color: var(--gray-600); line-height: 1.75;
   margin-bottom: 1.25rem; max-width: 560px;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
 }
 .blog-featured-cta {
   font-size: 13px; font-weight: 500; color: var(--accent);
@@ -729,6 +730,52 @@ nav {
 .blog-card-date {
   font-family: var(--mono); font-size: 10px; color: var(--gray-400);
   margin-top: auto; padding-top: 0.5rem;
+}
+
+/* Personal intro: switch between short, authored threads instead of a long scroll. */
+.hero-sub { max-width: 430px; margin-bottom: 1.7rem; }
+.hero-ctas { gap: .75rem 1.15rem; margin-bottom: 2rem; }
+.about-intro { color: var(--gray-600); margin: -.2rem 0 1.6rem; max-width: 580px; }
+.about-grid { grid-template-columns: minmax(0,1.35fr) minmax(190px,.65fr); }
+.about-story { min-width: 0; }
+.about-tabs { display: flex; flex-wrap: wrap; gap: clamp(14px,3vw,30px); border-bottom: 1px solid var(--gray-200); margin-bottom: 1.35rem; }
+.about-tabs [role="tab"] { position: relative; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; padding: 0 0 11px; background: none; color: var(--gray-600); font: 12px var(--mono); cursor: pointer; }
+.about-tabs [role="tab"][aria-selected="true"] { color: var(--accent); border-color: var(--accent); }
+.about-tabs [role="tab"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.about-panel { color: var(--gray-600); font-size: 15px; line-height: 1.8; animation: about-thread-in .22s ease both; }
+.about-panel[hidden] { display: none; }
+.about-panel p + p { margin-top: .85rem; }
+.about-panel strong { color: var(--black); }
+@keyframes about-thread-in { from { opacity: .35; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+
+/* Blog front page: one featured piece, three skim-friendly titles. */
+.blog-reading-list { display: flex; flex-direction: column; gap: 0; border-top: 1px solid var(--gray-200); }
+.blog-reading-row { display: grid; grid-template-columns: 42px minmax(0,1fr) auto 22px; align-items: baseline; gap: 12px; padding: 15px 4px; border: 0; border-bottom: 1px solid var(--gray-200); border-radius: 0; box-shadow: none; overflow: visible; }
+.blog-reading-row::after { display: none; }
+.blog-reading-row:hover { transform: none; box-shadow: none; padding-left: 10px; }
+.blog-reading-number { color: var(--accent); font: 10px var(--mono); }
+.blog-reading-title { font: 20px/1.25 var(--serif); }
+.blog-reading-meta { color: var(--gray-400); font: 10px var(--mono); text-align: right; }
+.blog-reading-arrow { color: var(--gray-400); text-align: right; transition: transform .2s,color .2s; }
+.blog-reading-row:hover .blog-reading-title,.blog-reading-row:focus-visible .blog-reading-title { color: var(--accent); }
+.blog-reading-row:hover .blog-reading-arrow,.blog-reading-row:focus-visible .blog-reading-arrow { color: var(--accent); transform: translate(2px,-2px); }
+
+@media (max-width: 720px) {
+  .about-grid { grid-template-columns: 1fr; gap: 1.6rem; }
+  .about-panel { font-size: 14px; }
+  .blog-reading-row { grid-template-columns: 32px minmax(0,1fr) 20px; gap: 9px; }
+  .blog-reading-meta { grid-column: 2; grid-row: 2; text-align: left; }
+  .blog-reading-arrow { grid-column: 3; grid-row: 1 / span 2; align-self: center; }
+  .blog-reading-title { font-size: 19px; }
+}
+@media (max-width: 420px) {
+  .hero-ctas { align-items: flex-start; flex-direction: column; }
+  .about-tabs { gap: 16px; }
+  .about-tabs [role="tab"] { font-size: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .about-panel { animation: none; }
+  .blog-reading-arrow { transition: none; }
 }
 
 /* ── NEW POST PLACEHOLDER CARD ── */
@@ -922,3 +969,9 @@ nav {
 }
 .newsletter-msg.success { color: #22C55E; }
 .newsletter-msg.error { color: #EF4444; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition-duration: .01ms !important; }
+  .blog-featured:hover, .blog-card:hover, .newsletter-btn:hover { transform: none !important; }
+}

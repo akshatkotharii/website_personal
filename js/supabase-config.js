@@ -42,7 +42,7 @@ function getSupabase() {
 // ── DYNAMIC NEWSLETTER SIGNUP WIDGET INJECTION ──
 document.addEventListener('DOMContentLoaded', () => {
   // Do not show on admin page
-  if (/\/(admin|unsubscribe)/.test(window.location.pathname)) return;
+  if (/\/(admin|unsubscribe|margins)(?:\/|\.|$)/.test(window.location.pathname)) return;
 
   const widget = document.createElement('div');
   widget.className = 'newsletter-widget';

@@ -3,15 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self';">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>akshat kothari 🙃</title>
   <meta name="description" content="Second-year engineering student at Plaksha University. Researching clean energy, building IoT systems, learning AI/ML.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Inter:wght@300;400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
-<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/notebook.css">
   <link rel="stylesheet" href="css/experience-refresh.css">
   <link rel="stylesheet" href="css/margins-preview.css">
@@ -32,15 +32,14 @@
     <li><a href="#contact">Contact</a></li>
   </ul>
   <a href="#contact" class="nav-cta">Let's connect →</a>
-  <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+  <button class="nav-toggle" id="navToggle" aria-label="Open menu" aria-controls="navDrawer" aria-expanded="false">
     <span></span><span></span><span></span>
   </button>
 </nav>
 
 <!-- Mobile drawer -->
-<div class="nav-drawer" id="navDrawer">
+<div class="nav-drawer" id="navDrawer" aria-hidden="true">
   <a href="#about">About</a>
-  <a href="#now">Now</a>
   <a href="#notebook">Projects</a>
   <a href="#experience">Experience</a>
   <a href="blog/index.html">Blog</a>
@@ -102,12 +101,11 @@
           <h1 class="hero-title">Always
             <br><em class="hero-manifesto"><span>exploring,</span> <span>tinkering</span> <span>and thinking!</span></em><br>
         </h1>
-        <p class="hero-sub">
-            Hi, I’m Akshat. I’m the kind of person who goes down rabbit holes. One day reading about AI agents, another day researching on energy systems, and somehow ending up building random things at 2am. Scroll to see projects, research notes and how we can collaborate together.
-        </p>
+        <p class="hero-sub">Hi, I’m Akshat. I follow curious questions into AI, everyday systems and the occasional 2am rabbit hole.</p>
         <div class="hero-ctas">
-          <a href="#notebook" class="btn-dark">Open my notebook ↗</a>
-          <a href="#blog" class="btn-link">Read the blog →</a>
+          <a href="#notebook" class="btn-dark">What I’m building <span aria-hidden="true">↗</span></a>
+          <a href="#blog" class="btn-link">What I’m writing <span aria-hidden="true">↗</span></a>
+          <a href="#about" class="btn-link">A little more about me <span aria-hidden="true">↗</span></a>
         </div>
         <div class="hero-stats">
           <div>
@@ -133,15 +131,27 @@
 <section id="about">
   <div class="container">
     <p class="section-label">Who I am</p>
-    <h2 class="section-title">A curious, passionate builder who thinks<br>beyond the problem.</h2>
+    <h2 class="section-title">Curious by default.</h2>
     <div class="section-rule"></div>
+    <p class="about-intro">Engineering student, rabbit-hole enthusiast. Pick a thread; there’s more to the story.</p>
     <div class="about-grid">
-      <div class="about-body">
-        <p>I'm Akshat — an engineering student who's more interested in what you <strong>do</strong> with knowledge than in having it. Everything I am working on is a learning curve, and that's exactly how I like it.</p>
-        <p>My sweet spot is the intersection of <strong>AI, data, and the mundane everyday</strong> — the kind of problems people deal with but never think to solve with technology. If a system can think smarter so a person doesn't have to, I want to build it. With just this in mind, I've been tinkering around my father's textile manufacturing systems since years now! 🙃</p>
-        <p>Beyond the technical, I'm genuinely fascinated by <strong>how ideas become companies</strong>. I follow the VC and startup ecosystem closely — what accelerators are betting on, which early-stage theses are playing out. I think a lot about what it takes to go from a working prototype to something people actually care about. Lately, I’ve been also fascinated by the stock market — not just the numbers, but the ideas, businesses, and decisions behind them :) </p>
-        <p>Outside screens: I play squash, get lost in music, and travel whenever I can — usually to somewhere I've never been. I’m also always up for good coffee and have a soft spot for exploring new tech products and gadgets.</p>
-        <p>I work best in teams. I think out loud, ask questions that go sideways in useful directions, and genuinely believe the best ideas come from people who are different from you.</p>
+      <div class="about-story" data-about-story>
+        <div class="about-tabs" role="tablist" aria-label="A little more about Akshat">
+          <button type="button" role="tab" id="about-tab-build" aria-controls="about-panel-build" aria-selected="true" data-about-tab="build">How I think</button>
+          <button type="button" role="tab" id="about-tab-curious" aria-controls="about-panel-curious" aria-selected="false" data-about-tab="curious">What I follow</button>
+          <button type="button" role="tab" id="about-tab-life" aria-controls="about-panel-life" aria-selected="false" data-about-tab="life">Off-screen</button>
+        </div>
+        <div class="about-panel" id="about-panel-build" role="tabpanel" aria-labelledby="about-tab-build" data-about-panel="build">
+          <p>I'm Akshat — an engineering student more interested in what you <strong>do</strong> with knowledge than in having it. Everything I make is a learning curve; that's how I like it.</p>
+          <p>My sweet spot is <strong>AI, data, and everyday problems</strong>. If a system can think smarter so a person doesn't have to, I want to build it. That instinct started while tinkering with my father's textile manufacturing systems. I think out loud, ask sideways questions, and work best with people who see things differently.</p>
+        </div>
+        <div class="about-panel" id="about-panel-curious" role="tabpanel" aria-labelledby="about-tab-curious" data-about-panel="curious" hidden>
+          <p>Beyond the technical, I'm genuinely fascinated by <strong>how ideas become companies</strong>. I follow the VC and startup ecosystem closely — what accelerators are betting on, which early-stage theses are playing out. I think a lot about what it takes to go from a working prototype to something people actually care about.</p>
+          <p>Lately, I’ve been also fascinated by the stock market — not just the numbers, but the ideas, businesses, and decisions behind them :)</p>
+        </div>
+        <div class="about-panel" id="about-panel-life" role="tabpanel" aria-labelledby="about-tab-life" data-about-panel="life" hidden>
+          <p>Outside screens: I play squash, get lost in music, and travel whenever I can — usually to somewhere I've never been. I’m also always up for good coffee and have a soft spot for exploring new tech products and gadgets.</p>
+        </div>
       </div>
       <div class="about-cards">
         <div class="about-card">
@@ -210,7 +220,8 @@
     <p class="section-label">Notes to myself</p>
     <h2 class="section-title" id="marginsPreviewTitle">Margins</h2>
     <p class="margins-intro">Small things I want to keep close.</p>
-    <div id="marginsPreviewList" class="margins-preview-list" aria-live="polite"></div>
+    <div id="marginsPreviewList" class="margins-preview-list" aria-live="polite" aria-atomic="true"></div>
+    <div class="margins-preview-controls"><button type="button" id="marginsNext">Read another note <span aria-hidden="true">↗</span></button><span id="marginsCount" aria-live="polite"></span></div>
     <a href="margins.html" class="margins-open">Open all notes <span aria-hidden="true">↗</span></a>
   </div>
 </section>
@@ -221,7 +232,7 @@
     <p class="section-label">Thinking out loud</p>
     <h2 class="section-title">The blog</h2>
     <div class="section-rule"></div>
-    <p class="blog-intro">A mix of tech learnings, project updates, startup observations, and daily life. Unpolished. Honest. Written for myself first.</p>
+    <p class="blog-intro">Project notes, questions, and small discoveries. Written for myself first.</p>
 
     <!-- FEATURED POST — populated by JS from Supabase -->
     <a class="blog-featured" id="blogFeatured" href="#" style="display:none;"></a>
@@ -229,8 +240,8 @@
     <!-- ERROR (hidden by default) -->
     <div id="blogError" style="display:none;font-family:var(--mono);font-size:12px;color:#EF4444;margin-bottom:1rem;padding:0.75rem 1rem;background:#FEF2F2;border-radius:8px;border:1px solid #FCA5A5;"></div>
 
-    <!-- CARD GRID — populated by JS -->
-    <div class="blog-cards" id="blogCards"></div>
+    <!-- Compact reading list — populated by JS -->
+    <div class="blog-cards blog-reading-list" id="blogCards"></div>
 
     <!-- LOAD MORE -->
     <div id="loadMoreWrap" style="display:none;justify-content:center;margin-top:2rem;">

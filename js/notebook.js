@@ -5,7 +5,13 @@
   const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const safeURL = value => { try { const u = new URL(value, location.href); return value && ['http:', 'https:'].includes(u.protocol) ? u.href : ''; } catch { return ''; } };
   const labels = {planned:'Up next', building:'In progress', shipped:'Shipped', paused:'On pause', dropped:'Closed chapter'};
-  const symbols = {Building:'⌁', Research:'◌', Product:'↗', Learning:'✳', Personal:'✎'};
+  const art = {
+    'spin-sync':'<svg viewBox="0 0 52 52"><rect x="9" y="5" width="34" height="42" rx="7"/><path d="M16 12h3m5 0h12"/><circle class="washer-drum" cx="26" cy="29" r="11"/><circle cx="26" cy="29" r="6"/></svg>',
+    'outreach-brain':'<svg viewBox="0 0 52 52"><path class="message-pulse" d="M8 13h36v25H25l-10 7v-7H8z"/><path d="M16 22h20M16 29h13"/><circle class="message-dot" cx="39" cy="11" r="4"/></svg>',
+    'energy-nudging':'<svg viewBox="0 0 52 52"><path d="M9 40h35M12 34l9-9 8 5 13-17"/><path class="energy-spark" d="M29 7 19 25h9l-4 15 11-21h-9l3-12z"/></svg>',
+    'ml-sprint':'<svg viewBox="0 0 52 52"><path d="M26 8c-8-8-20 1-16 10-8 5-4 17 2 18-2 9 8 13 14 7 6 6 16 2 14-7 7-4 7-14 1-18 3-10-7-17-15-10z"/><path d="M26 10v33M18 18l8 5 8-7M15 31l11-3 10 6M19 39l7-5 8 5"/></svg>',
+    'this-site':'<svg viewBox="0 0 52 52"><path class="site-cursor" d="m13 8 24 18-11 2-5 12z"/><path d="m31 33 7 8"/></svg>'
+  };
   let projects = [], entries = [], filter = 'now', selected = null, trigger = null;
   const dialog = document.getElementById('notebookDialog');
   const board = document.getElementById('notebookBoard');
@@ -19,8 +25,8 @@
   function render() {
     const visible = projects.filter(matching);
     const connections='<svg class="notebook-connectors" viewBox="0 0 720 500" preserveAspectRatio="none" aria-hidden="true"><path d="M100 220 C40 260 280 290 180 320 M350 220 C310 270 580 280 540 320 M640 220 C700 290 640 320 610 345"/></svg>';
-    board.innerHTML = visible.length ? connections + visible.map((p,i) => `<button class="notebook-note note-${i % 5}" type="button" data-project="${escape(p.id)}" aria-haspopup="dialog">
-      <span class="note-top"><span class="note-kind">${escape(p.kind)}</span><span class="note-symbol" aria-hidden="true">${symbols[p.kind] || '✎'}</span></span>
+    board.innerHTML = visible.length ? connections + visible.map((p,i) => `<button class="notebook-note note-${i % 5}" type="button" data-project="${escape(p.id)}" data-project-art="${art[p.id] ? escape(p.id) : 'default'}" aria-haspopup="dialog" aria-label="Open ${escape(p.title)} project details">
+      <span class="note-top"><span class="note-kind">${escape(p.kind)}</span><span class="note-illustration" aria-hidden="true">${art[p.id] || '<svg viewBox="0 0 52 52"><path d="M8 40h36M12 32l10-10 7 6 12-15"/><circle cx="41" cy="13" r="3"/></svg>'}</span></span>
       <span class="note-title">${escape(p.title)}</span><span class="note-summary">${escape(p.summary)}</span>
       <span class="note-bottom"><span class="note-status status-${escape(p.status)}">${labels[p.status] || 'In progress'}</span><span class="note-open" aria-hidden="true">↗</span></span>
     </button>`).join('') : '<p class="notebook-empty">Nothing here yet. Every chapter has its own pace.</p>';

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-O7cg7fixNG0KYM9sVVcfI3Mc/wsOMYhYH7dXAuZyLRI=' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self';">
   <meta name="robots" content="noindex,nofollow">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin — Akshat Kothari</title>
@@ -431,7 +431,7 @@
             </div>
             <div style="display:flex;gap:8px;">
               <button class="btn-publish-main" id="saveExpBtn" style="padding:8px 12px;font-size:12px;">Save Entry</button>
-              <button class="btn-sm ghost" id="clearExpBtn" style="display:none;" onclick="clearExpForm()">Cancel</button>
+              <button class="btn-sm ghost" id="clearExpBtn" style="display:none;" data-admin-action="clear-experience">Cancel</button>
             </div>
             <div class="publish-status" id="expStatus"></div>
           </div>
@@ -545,6 +545,26 @@
 <script>
 // Config is in js/supabase-config.js — edit ONLY that file
 const sb = getSupabase();
+
+document.addEventListener('click', event => {
+  const button = event.target.closest('[data-admin-action]');
+  if (!button) return;
+  const id = Number(button.dataset.id);
+  switch (button.dataset.adminAction) {
+    case 'broadcast-post': broadcastPost(id); break;
+    case 'toggle-star': toggleStar(id, button.dataset.current === 'true'); break;
+    case 'view-post': viewPost(button.dataset.slug); break;
+    case 'edit-post': editPost(id); break;
+    case 'thread-post': addThreadUpdate(id); break;
+    case 'delete-post': deletePost(id, 'this post'); break;
+    case 'approve-comment': approveComment(id); break;
+    case 'delete-comment': deleteComment(id); break;
+    case 'edit-experience': editExp(id); break;
+    case 'delete-experience': deleteExp(id, 'this entry'); break;
+    case 'delete-subscriber': deleteSubscriber(id, 'this subscriber'); break;
+    case 'clear-experience': clearExpForm(); break;
+  }
+});
 
 // Hide setup notice if credentials are set
 if (sb) {
@@ -669,12 +689,12 @@ function renderPostList(posts) {
           </div>
         </div>
         <div class="post-item-actions">
-          <button class="icon-btn" title="Email published post" onclick="broadcastPost(${Number(p.id)})">✉</button>
-          <button class="icon-btn" title="${p.featured ? 'Unstar post' : 'Star post'}" style="color:${p.featured ? '#EAB308' : 'inherit'};border-color:${p.featured ? '#EAB308' : 'inherit'}" onclick="toggleStar(${p.id}, ${p.featured || false})">${p.featured ? '★' : '☆'}</button>
-          <button class="icon-btn" title="View post" onclick="viewPost(${htmlArg(p.slug)})">↗</button>
-          <button class="icon-btn" title="Edit" onclick="editPost(${p.id})">✎</button>
-          <button class="icon-btn" title="Start a thread update" onclick="addThreadUpdate(${p.id})">+</button>
-          <button class="icon-btn del" title="Delete post" onclick="deletePost(${Number(p.id)}, &quot;this post&quot;)">✕</button>
+          <button class="icon-btn" type="button" aria-label="Email published post" title="Email published post" data-admin-action="broadcast-post" data-id="${Number(p.id)}">✉</button>
+          <button class="icon-btn" type="button" aria-label="${p.featured ? 'Unstar post' : 'Star post'}" title="${p.featured ? 'Unstar post' : 'Star post'}" style="color:${p.featured ? '#EAB308' : 'inherit'};border-color:${p.featured ? '#EAB308' : 'inherit'}" data-admin-action="toggle-star" data-id="${Number(p.id)}" data-current="${Boolean(p.featured)}">${p.featured ? '★' : '☆'}</button>
+          <button class="icon-btn" type="button" aria-label="View post" title="View post" data-admin-action="view-post" data-slug="${escapeText(p.slug)}">↗</button>
+          <button class="icon-btn" type="button" aria-label="Edit post" title="Edit" data-admin-action="edit-post" data-id="${Number(p.id)}">✎</button>
+          <button class="icon-btn" type="button" aria-label="Start a thread update" title="Start a thread update" data-admin-action="thread-post" data-id="${Number(p.id)}">+</button>
+          <button class="icon-btn del" type="button" aria-label="Delete post" title="Delete post" data-admin-action="delete-post" data-id="${Number(p.id)}">✕</button>
         </div>
       </div>
     `;
@@ -1056,8 +1076,8 @@ async function loadPendingComments() {
         <div class="comment-admin-post">On: ${escapeText(c.posts?.title || '')}</div>
       </div>
       <div class="post-item-actions" style="flex-shrink:0">
-        <button class="icon-btn" style="color:#22C55E;border-color:#22C55E" onclick="approveComment(${c.id})">✓</button>
-        <button class="icon-btn del" onclick="deleteComment(${c.id})">✕</button>
+        <button class="icon-btn" type="button" aria-label="Approve comment" title="Approve comment" style="color:#22C55E;border-color:#22C55E" data-admin-action="approve-comment" data-id="${Number(c.id)}">✓</button>
+        <button class="icon-btn del" type="button" aria-label="Delete comment" title="Delete comment" data-admin-action="delete-comment" data-id="${Number(c.id)}">✕</button>
       </div>
     </div>`;
   }).join('');
@@ -1199,8 +1219,8 @@ async function loadExperience() {
           </div>
         </div>
         <div class="post-item-actions">
-          <button class="icon-btn" title="Edit" onclick="editExp(${exp.id})">✎</button>
-          <button class="icon-btn del" title="Delete experience" onclick="deleteExp(${Number(exp.id)}, &quot;this entry&quot;)">✕</button>
+          <button class="icon-btn" type="button" aria-label="Edit experience" title="Edit" data-admin-action="edit-experience" data-id="${Number(exp.id)}">✎</button>
+          <button class="icon-btn del" type="button" aria-label="Delete experience" title="Delete experience" data-admin-action="delete-experience" data-id="${Number(exp.id)}">✕</button>
         </div>
       </div>
     `;
@@ -1322,7 +1342,7 @@ async function loadSubscribers() {
           <div class="post-item-meta"><span>Joined ${fmt}</span></div>
         </div>
         <div class="post-item-actions">
-          <button class="icon-btn del" title="Remove subscriber" onclick="deleteSubscriber(${Number(s.id)}, &quot;this subscriber&quot;)">✕</button>
+          <button class="icon-btn del" type="button" aria-label="Remove subscriber" title="Remove subscriber" data-admin-action="delete-subscriber" data-id="${Number(s.id)}">✕</button>
         </div>
       </div>
     `;

@@ -736,8 +736,11 @@ nav {
 .hero-sub { max-width: 430px; margin-bottom: 1.7rem; }
 .hero-ctas { gap: .75rem 1.15rem; margin-bottom: 2rem; }
 .about-intro { color: var(--gray-600); margin: -.2rem 0 1.6rem; max-width: 580px; }
-.about-grid { grid-template-columns: minmax(0,1.35fr) minmax(190px,.65fr); }
-.about-story { min-width: 0; }
+.about-grid { grid-template-columns: minmax(0,1.15fr) minmax(320px,.85fr); gap: clamp(1.25rem,3vw,2.25rem); align-items: stretch; }
+.about-story { min-width: 0; padding: clamp(1.35rem,2.8vw,2rem); background: var(--white); border: 1px solid var(--gray-100); border-radius: var(--radius-md); }
+.about-cards { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); grid-template-rows: repeat(2,minmax(0,1fr)); gap: .75rem; }
+.about-card { display: flex; min-width: 0; flex-direction: column; justify-content: center; padding: clamp(1rem,2vw,1.3rem); }
+.about-card-val { overflow-wrap: anywhere; }
 .about-tabs { display: flex; flex-wrap: wrap; gap: clamp(14px,3vw,30px); border-bottom: 1px solid var(--gray-200); margin-bottom: 1.35rem; }
 .about-tabs [role="tab"] { position: relative; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; padding: 0 0 11px; background: none; color: var(--gray-600); font: 12px var(--mono); cursor: pointer; }
 .about-tabs [role="tab"][aria-selected="true"] { color: var(--accent); border-color: var(--accent); }
@@ -762,6 +765,7 @@ nav {
 
 @media (max-width: 720px) {
   .about-grid { grid-template-columns: 1fr; gap: 1.6rem; }
+  .about-cards { grid-template-columns: repeat(2,minmax(0,1fr)); grid-template-rows: auto; }
   .about-panel { font-size: 14px; }
   .blog-reading-row { grid-template-columns: 32px minmax(0,1fr) 20px; gap: 9px; }
   .blog-reading-meta { grid-column: 2; grid-row: 2; text-align: left; }
@@ -772,6 +776,7 @@ nav {
   .hero-ctas { align-items: flex-start; flex-direction: column; }
   .about-tabs { gap: 16px; }
   .about-tabs [role="tab"] { font-size: 10px; }
+  .about-cards { grid-template-columns: 1fr; gap: .65rem; }
 }
 @media (prefers-reduced-motion: reduce) {
   .about-panel { animation: none; }

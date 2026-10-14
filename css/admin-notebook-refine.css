@@ -1,0 +1,23 @@
+/* Keeps the everyday notebook controls calm; deeper fields appear on request. */
+.nb-editor-section { padding-bottom: 16px; }
+.nb-section-heading { display: flex; justify-content: space-between; gap: 16px; margin-bottom: 3px; }
+.nb-section-heading span { font: 22px var(--serif); color: var(--black); }
+.nb-section-heading p { margin-top: 4px; font: 12px/1.55 var(--sans); color: var(--gray-600); }
+.nb-check { display: flex !important; align-items: center; gap: 8px; margin: 14px 0 4px !important; color: var(--black) !important; font: 13px var(--sans) !important; }
+.nb-check input { accent-color: var(--accent); }
+.nb-admin-details, .nb-log, .nb-recap { margin-top: 18px; border: 1px solid var(--gray-200); border-radius: 9px; background: #fafaf8; overflow: hidden; }
+.nb-admin-details > summary, .nb-log > summary, .nb-recap > summary { display: flex; align-items: center; justify-content: space-between; gap: 15px; padding: 15px 17px; cursor: pointer; list-style: none; }
+.nb-admin-details > summary::-webkit-details-marker, .nb-log > summary::-webkit-details-marker, .nb-recap > summary::-webkit-details-marker { display: none; }
+.nb-admin-details > summary::after, .nb-log > summary::after, .nb-recap > summary::after { content: '+'; font: 21px var(--serif); color: var(--accent); order: 3; }
+.nb-admin-details[open] > summary::after, .nb-log[open] > summary::after, .nb-recap[open] > summary::after { content: '–'; }
+.nb-admin-details > summary span, .nb-log > summary span, .nb-recap > summary span { font: 20px var(--serif); }
+.nb-admin-details > summary small, .nb-log > summary small, .nb-recap > summary small { margin-left: auto; text-align: right; color: var(--gray-600); font: 10px/1.4 var(--mono); }
+.nb-details-body { padding: 0 17px 18px; border-top: 1px solid var(--gray-200); animation: nb-details-in .2s ease; }
+.nb-log { border-top: 1px solid var(--gray-200); padding-top: 0; }
+.nb-recap { padding: 0; background: #f0effb; border-color: #dedcf1; }
+.nb-recap .nb-details-body { border-color: #dedcf1; }
+.nb-recap textarea { margin: 15px 0; }
+.nb-entry-row:last-child { border-bottom: 0; }
+@keyframes nb-details-in { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 700px) { .nb-section-heading { display: block; } .nb-admin-details > summary small, .nb-log > summary small, .nb-recap > summary small { display: none; } .nb-details-body { padding: 0 14px 16px; } }
+@media (prefers-reduced-motion: reduce) { .nb-details-body { animation: none; } }

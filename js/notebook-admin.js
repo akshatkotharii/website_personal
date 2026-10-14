@@ -6,9 +6,11 @@
   let projects=[],entries=[],active=null,entryId=null,loading=false;
   const statuses=['planned','building','shipped','paused','dropped'];
   const kinds=['Building','Research','Product','Learning','Personal'];
+  const art=window.PROJECT_ART;
   const input=(name,label,value='',type='text')=>`<label for="nb-${name}">${label}</label><input id="nb-${name}" name="${name}" type="${type}" value="${esc(value??'')}" ${type==='text'?'maxlength="240"':''}>`;
   const area=(name,label,value='')=>`<label for="nb-${name}">${label}</label><textarea id="nb-${name}" name="${name}" maxlength="4000">${esc(value)}</textarea>`;
   const select=(name,label,values,value)=>`<label for="nb-${name}">${label}</label><select id="nb-${name}" name="${name}">${values.map(v=>`<option ${v===value?'selected':''}>${v}</option>`).join('')}</select>`;
+  const artSelect=(name,label,values,value)=>`<label for="nb-${name}">${label}</label><select id="nb-${name}" name="${name}">${Object.entries(values).map(([key,item])=>`<option value="${esc(key)}" ${key===value?'selected':''}>${esc(item.label||item)}</option>`).join('')}</select>`;
   function message(text){const el=root.querySelector('#nbMessage');if(el)el.textContent=text;}
   function url(value){if(!value)return '';const u=new URL(value,location.origin);if(!['https:','http:'].includes(u.protocol))throw Error('Links must use https:// or a site path.');return u.href;}
   async function refresh(){
@@ -17,36 +19,42 @@
     projects=p.data||[];entries=e.data||[];
   }
   function render(){
-    const p=projects.find(x=>x.id===active)||{id:'',title:'',kind:'Building',status:'planned',pinned:true,sort_order:projects.length};
+    const p=projects.find(x=>x.id===active)||{id:'',title:'',kind:'Building',status:'planned',icon:'spark',animation:'breathe',pinned:true,sort_order:projects.length};
+    const projectEntries=entries.filter(e=>e.project_id===p.id);
+    const isLearning=p.kind==='Learning';
     root.innerHTML=`<div class="nb-admin-header"><div><h2>Your open notebook</h2><p>Small updates. Clear chapters. Your thinking, in public.</p></div><button class="nb-secondary" id="nbNew">+ New chapter</button></div>
     <div class="nb-workspace"><div class="nb-project-list">${projects.map(x=>`<button type="button" data-edit-project="${esc(x.id)}" aria-pressed="${x.id===active}">${esc(x.title)}<small>${esc(x.status)}${x.pinned?' · on desk':''}</small></button>`).join('')||'<p class="nb-help">Add your first chapter.</p>'}</div>
     <div class="nb-editor"><form id="nbProjectForm">
+      <section class="nb-editor-section"><div class="nb-section-heading"><div><span>Chapter essentials</span><p>The small amount people see before they choose to open a project.</p></div></div>
       ${input('title','Chapter name *',p.title)}${input('summary','One-sentence introduction',p.summary)}
       <div class="nb-pair"><div>${select('kind','Kind',kinds,p.kind)}</div><div>${select('status','Status',statuses,p.status)}</div></div>
-      <p class="nb-help">Shipped stays in Shipped; paused and dropped move to On the shelf. Pin up to five chapters to your desk.</p>
-      ${area('current','Now — what are you doing?',p.current)}${area('thinking','Why this way? / open questions (optional)',p.thinking)}${area('next_step','Next small step',p.next_step)}
+      <div class="nb-art-picker"><div class="nb-art-preview" id="nbArtPreview" data-motion="${esc(p.animation||'breathe')}" aria-hidden="true">${art.render(p.icon)}</div><div class="nb-art-controls"><div>${artSelect('icon','Card icon',art.icons,p.icon||'spark')}</div><div>${artSelect('animation','Icon motion',art.motions,p.animation||'breathe')}</div><p class="nb-help">The icon and motion belong to this chapter. Deleting the chapter removes them too.</p></div></div>
+      <label class="nb-check"><input name="pinned" type="checkbox" ${p.pinned?'checked':''}> Show on my desk</label><p class="nb-help">Pin up to five chapters. Shipped moves to Shipped; paused and closed chapters go to On the shelf.</p></section>
+      <details class="nb-admin-details" open><summary><span>Story and links</span><small>What opens when someone chooses this chapter</small></summary><div class="nb-details-body">
+      ${area('current','Now — what are you doing?',p.current)}${area('thinking','Thinking through (optional)',p.thinking)}${area('next_step','Next small step',p.next_step)}
       <div class="nb-pair"><div>${input('url','Project link',p.url)}</div><div>${input('thread_url','Blog thread link',p.thread_url)}</div></div>
       <div class="nb-pair"><div>${input('start_date','Start date (optional)',p.start_date,'date')}</div><div>${input('sort_order','Display order',p.sort_order,'number')}</div></div>
-      ${p.id==='ml-sprint'?input('progress','ML days completed (0–30)',p.progress??0,'number'):''}
-      <label><input name="pinned" type="checkbox" ${p.pinned?'checked':''}> Show on my desk</label>
+      ${isLearning?input('progress','Learning days completed (0–30)',p.progress??0,'number'):''}</div></details>
       <div class="nb-actions"><button type="submit">Save chapter</button>${p.id?'<button type="button" id="nbRemove">Delete chapter</button>':''}</div>
     </form><div class="nb-message" id="nbMessage" role="status"></div>
-    ${p.id?`<details class="nb-log" open><summary>Updates for this chapter</summary><form id="nbEntryForm">${input('entry_title','Update title *')}${area('entry_body','What happened? *')}${input('entry_url','Read more link (optional)')}${p.id==='ml-sprint'?input('entry_day','Sprint day (1–30, optional)','','number'):''}<label><input name="published" type="checkbox"> Publish on website (leave unchecked for draft)</label><div class="nb-actions"><button type="submit">Save update</button><button type="button" id="nbResetEntry">Clear</button></div></form><div>${entries.filter(e=>e.project_id===p.id).map(e=>`<div class="nb-entry-row"><span>${esc(e.title)}<small> · ${e.published?'public':'draft'} · ${new Date(e.created_at).toLocaleDateString('en-GB')}</small></span><span><button type="button" data-edit-entry="${e.id}">Edit</button> <button type="button" data-delete-entry="${e.id}">Delete</button></span></div>`).join('')}</div></details>`:''}
+    ${p.id?`<details class="nb-log"><summary><span>Project updates</span><small>${projectEntries.length} ${projectEntries.length===1?'update':'updates'} · drafts stay private</small></summary><div class="nb-details-body"><form id="nbEntryForm">${input('entry_title','Update title *')}${area('entry_body','What happened? *')}${input('entry_url','Read more link (optional)')}${isLearning?input('entry_day','Sprint day (1–30, optional)','','number'):''}<label class="nb-check"><input name="published" type="checkbox"> Publish on website</label><div class="nb-actions"><button type="submit">Save update</button><button type="button" id="nbResetEntry">Clear</button></div></form><div>${projectEntries.map(e=>`<div class="nb-entry-row"><span>${esc(e.title)}<small> · ${e.published?'public':'draft'} · ${new Date(e.created_at).toLocaleDateString('en-GB')}</small></span><span><button type="button" data-edit-entry="${e.id}">Edit</button> <button type="button" data-delete-entry="${e.id}">Delete</button></span></div>`).join('')||'<p class="nb-help">No updates yet.</p>'}</div></div></details>`:''}
     </div></div>
-    <section class="nb-recap"><h3>A week in the notebook</h3><p class="nb-help">Turn published updates into an editable blog draft. Draft notes stay private. Email a published recap using its envelope button after server email setup.</p><div class="nb-actions"><label>Week starting <input type="date" id="nbWeek" value="${weekStart()}"></label><button type="button" id="nbGenerate">Generate recap</button></div><textarea id="nbRecap" aria-label="Weekly recap draft" placeholder="Your weekly recap will appear here. Review it before publishing."></textarea><button type="button" class="nb-secondary" id="nbToBlog">Move to blog editor</button><p id="nbRecapStatus" class="nb-help" role="status"></p></section>`;
+    <details class="nb-recap"><summary><span>A week in the notebook</span><small>Turn published updates into a blog draft</small></summary><div class="nb-details-body"><p class="nb-help">Draft notes stay private. Review each recap before moving it into the blog editor.</p><div class="nb-actions"><label>Week starting <input type="date" id="nbWeek" value="${weekStart()}"></label><button type="button" id="nbGenerate">Generate recap</button></div><textarea id="nbRecap" aria-label="Weekly recap draft" placeholder="Your weekly recap will appear here. Review it before publishing."></textarea><button type="button" class="nb-secondary" id="nbToBlog">Move to blog editor</button><p id="nbRecapStatus" class="nb-help" role="status"></p></div></details>`;
     root.querySelector('[name=title]').required=true;
     root.querySelectorAll('[name=entry_title],[name=entry_body]').forEach(x=>x.required=true);
     const progress=root.querySelector('[name=progress]');if(progress){progress.min=0;progress.max=30;progress.step=1;}
+    ['icon','animation'].forEach(name=>root.querySelector(`[name=${name}]`).addEventListener('change',updateArtPreview));
     root.querySelector('#nbProjectForm').onsubmit=saveProject;
     if(p.id)root.querySelector('#nbEntryForm').onsubmit=saveEntry;
   }
+  function updateArtPreview(){const preview=root.querySelector('#nbArtPreview');if(!preview)return;preview.dataset.motion=root.querySelector('[name=animation]').value;preview.innerHTML=art.render(root.querySelector('[name=icon]').value);}
   function weekStart(){const d=new Date();const offset=(d.getDay()+6)%7;d.setDate(d.getDate()-offset);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
   async function saveProject(event){
     event.preventDefault();const form=event.target,button=form.querySelector('[type=submit]');button.disabled=true;
     try {
       const d=new FormData(form),status=d.get('status'),pinned=d.has('pinned')&&!['paused','dropped'].includes(status);
       if(pinned&&projects.filter(p=>p.pinned&&p.id!==active).length>=5)throw Error('Your desk holds five chapters. Unpin one or move it to the shelf first.');
-      const payload={id:active||crypto.randomUUID(),title:d.get('title').trim(),summary:d.get('summary').trim(),kind:d.get('kind'),status,pinned,current:d.get('current').trim(),thinking:d.get('thinking').trim(),next_step:d.get('next_step').trim(),url:url(d.get('url').trim()),thread_url:url(d.get('thread_url').trim()),start_date:d.get('start_date')||null,sort_order:Number(d.get('sort_order'))||0,updated_at:new Date().toISOString()};
+      const payload={id:active||crypto.randomUUID(),title:d.get('title').trim(),summary:d.get('summary').trim(),kind:d.get('kind'),status,icon:d.get('icon'),animation:d.get('animation'),pinned,current:d.get('current').trim(),thinking:d.get('thinking').trim(),next_step:d.get('next_step').trim(),url:url(d.get('url').trim()),thread_url:url(d.get('thread_url').trim()),start_date:d.get('start_date')||null,sort_order:Number(d.get('sort_order'))||0,updated_at:new Date().toISOString()};
       if(!payload.title)throw Error('Chapter name is required.');
       if(d.has('progress'))payload.progress=Number(d.get('progress'));
       const {error}=await client.from('notebook_projects').upsert(payload);if(error)throw error;

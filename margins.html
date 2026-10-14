@@ -10,18 +10,26 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/margins.css">
 </head>
 <body>
-  <header class="margins-nav">
-    <a href="index.html">AK <span>Akshat Kothari</span></a>
-    <nav aria-label="Main navigation">
-      <a href="index.html#notebook">Work</a>
-      <a href="blog/index.html">Writing</a>
-      <a href="margins.html" aria-current="page">Margins</a>
-      <a href="index.html#contact">Say hi</a>
-    </nav>
-  </header>
+  <nav>
+    <a href="index.html" class="nav-logo">Akshat Kothari</a>
+    <ul class="nav-links">
+      <li><a href="index.html#about">About</a></li>
+      <li><a href="index.html#notebook">Notebook</a></li>
+      <li><a href="index.html#experience">Experience</a></li>
+      <li><a href="blog/index.html">Blog</a></li>
+      <li><a href="margins.html" style="color:var(--black)">Margins</a></li>
+      <li><a href="index.html#contact">Contact</a></li>
+    </ul>
+    <a href="index.html#contact" class="nav-cta">Let's connect →</a>
+    <button class="nav-toggle" id="navToggle" aria-label="Open menu" aria-controls="navDrawer" aria-expanded="false"><span></span><span></span><span></span></button>
+  </nav>
+  <div class="nav-drawer" id="navDrawer" aria-hidden="true">
+    <a href="index.html#about">About</a><a href="index.html#notebook">Notebook</a><a href="index.html#experience">Experience</a><a href="blog/index.html">Blog</a><a href="margins.html">Margins</a><a href="index.html#contact">Contact</a>
+  </div>
   <main>
     <p class="eyebrow">Notes to myself</p>
     <h1>Margins</h1>
@@ -35,6 +43,7 @@
   <footer>Akshat Kothari · Still exploring.</footer>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase-config.js"></script>
+  <script src="js/main.js"></script>
   <script src="js/margins.js"></script>
 </body>
 </html>

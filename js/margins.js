@@ -159,6 +159,12 @@
       }
     });
     preview.addEventListener('touchstart', event => { touchStartX = event.changedTouches[0].clientX; }, { passive: true });
+    preview.addEventListener('touchmove', event => {
+      const touch = event.changedTouches[0];
+      const box = preview.getBoundingClientRect();
+      preview.style.setProperty('--pointer-x', `${touch.clientX - box.left}px`);
+      preview.style.setProperty('--pointer-y', `${touch.clientY - box.top}px`);
+    }, { passive: true });
     preview.addEventListener('touchend', event => {
       const distance = event.changedTouches[0].clientX - touchStartX;
       if (Math.abs(distance) < 48 || notes.length < 2) return;

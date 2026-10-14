@@ -204,21 +204,33 @@ async function loadExperience() {
   if (!timeline) return;
 
   let entries = STATIC_EXPERIENCE;
+  let activeIndex = -1;
+  const close = () => {
+    activeIndex = -1;
+    timeline.querySelectorAll('[data-experience]').forEach(button => button.setAttribute('aria-pressed', 'false'));
+    const story = timeline.querySelector('#experienceStory');
+    story.hidden = true;
+    story.innerHTML = '';
+  };
   const show = index => {
     const exp = entries[index];
     if (!exp) return;
+    if (activeIndex === index) { close(); return; }
+    activeIndex = index;
     timeline.querySelectorAll('[data-experience]').forEach(button => button.setAttribute('aria-pressed', String(Number(button.dataset.experience) === index)));
-    timeline.querySelector('#experienceStory').innerHTML = `<p class="experience-story-kicker">A chapter in the story</p><h3>${escapeText(exp.role)}</h3><p class="experience-story-place">${escapeText(exp.org)} · ${escapeText(exp.date_range)}</p><p>${escapeText(exp.description)}</p>`;
+    const story = timeline.querySelector('#experienceStory');
+    story.hidden = false;
+    story.innerHTML = `<button type="button" class="experience-story-close" aria-label="Close experience details">×</button><p class="experience-story-kicker">A chapter in the story</p><h3>${escapeText(exp.role)}</h3><p class="experience-story-place">${escapeText(exp.org)} · ${escapeText(exp.date_range)}</p><p>${escapeText(exp.description)}</p>`;
   };
   const render = () => {
     timeline.innerHTML = `<div class="experience-points" role="group" aria-label="Experience chapters">${entries.map((exp, i) => `
-      <button type="button" class="experience-point" data-experience="${i}" aria-controls="experienceStory" aria-pressed="${i === 0}">
+      <button type="button" class="experience-point" data-experience="${i}" aria-controls="experienceStory" aria-pressed="false">
         <span class="experience-dot" aria-hidden="true"></span><span class="tl-date">${escapeText(exp.date_range)}</span>
         <span class="tl-role">${escapeText(exp.role)}</span><span class="tl-org">${escapeText(exp.org)}</span>
-      </button>`).join('')}</div><article id="experienceStory" class="experience-story" aria-live="polite"></article>`;
-    show(0);
+      </button>`).join('')}</div><p class="experience-invite">Pick a point when you want the longer version.</p><article id="experienceStory" class="experience-story" aria-live="polite" hidden></article>`;
+    activeIndex = -1;
   };
-  timeline.addEventListener('click', event => { const button = event.target.closest('[data-experience]'); if (button) show(Number(button.dataset.experience)); });
+  timeline.addEventListener('click', event => { const button = event.target.closest('[data-experience]'); if (button) show(Number(button.dataset.experience)); if (event.target.closest('.experience-story-close')) close(); });
   render();
   const sb = getSupabase();
   if (!sb) return;
@@ -237,13 +249,14 @@ function renderFeatured(el, post) {
     <div class="blog-featured-accent"></div>
     <div class="blog-featured-body">
       <div class="blog-featured-meta">
+        <span class="blog-featured-kicker">Start here</span>
         <span class="blog-row-tag">${escapeText(post.category || post.cat || 'personal')}</span>
         <span class="blog-featured-date">${fmtDate(post.created_at || post.date)}</span>
         <span class="blog-featured-read">${readTime(post.excerpt)} read</span>
       </div>
       <h3 class="blog-featured-title">${escapeText(post.title)}</h3>
       <p class="blog-featured-excerpt">${escapeText(post.excerpt || '')}</p>
-      <span class="blog-featured-cta">Read post →</span>
+      <span class="blog-featured-cta"><span>Read this note</span><span aria-hidden="true">↗</span></span>
     </div>`;
 }
 

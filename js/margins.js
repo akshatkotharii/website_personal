@@ -26,12 +26,6 @@
     if (/\b(idea|could|should|what if|build|make)\b/i.test(note.text)) return 'idea';
     return 'thought';
   };
-  const noteMeta = kind => ({
-    link: ['Found on the internet', 'saved link'],
-    quote: ['Words worth keeping', 'quotation'],
-    idea: ['Something forming', 'open thought'],
-    thought: ['Note to myself', 'thought in orbit']
-  }[kind]);
   function wordReveal(text, target) {
     text.trim().split(/\s+/).forEach((part, wordIndex) => {
       const span = document.createElement('span');
@@ -45,7 +39,6 @@
     index = index % notes.length;
     const note = notes[index];
     const kind = noteKind(note);
-    const [kindLabel, signalLabel] = noteMeta(kind);
     const stage = document.createElement('div');
     stage.className = 'margins-stage';
     const rail = document.createElement('div');
@@ -62,15 +55,12 @@
     });
     const card = document.createElement('article');
     card.className = 'margin-preview-card';
-    const label = document.createElement('span');
-    label.className = 'margin-preview-kind';
-    label.textContent = kindLabel;
     const text = document.createElement('p');
     text.className = 'margin-preview-text';
     if (note.text.length > 115) text.classList.add('is-long');
     else if (note.text.length > 65) text.classList.add('is-medium');
     wordReveal(note.text, text);
-    card.append(label, text);
+    card.append(text);
     if (note.context) {
       const context = document.createElement('p');
       context.className = 'margin-preview-context';
@@ -91,10 +81,7 @@
     signal.setAttribute('aria-hidden', 'true');
     const signalCore = document.createElement('span');
     signalCore.className = 'margins-signal-core';
-    const signalText = document.createElement('span');
-    signalText.className = 'margins-signal-label';
-    signalText.textContent = signalLabel;
-    signal.append(signalCore, signalText);
+    signal.append(signalCore);
     stage.append(rail, card, signal);
     preview.dataset.kind = kind;
     preview.replaceChildren(stage);

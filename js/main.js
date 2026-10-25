@@ -227,7 +227,7 @@ async function loadExperience() {
       <button type="button" class="experience-point" data-experience="${i}" aria-controls="experienceStory" aria-pressed="false">
         <span class="experience-dot" aria-hidden="true"></span><span class="tl-date">${escapeText(exp.date_range)}</span>
         <span class="tl-role">${escapeText(exp.role)}</span><span class="tl-org">${escapeText(exp.org)}</span>
-      </button>`).join('')}</div><p class="experience-invite">Pick a point when you want the longer version.</p><article id="experienceStory" class="experience-story" aria-live="polite" hidden></article>`;
+      </button>`).join('')}</div><article id="experienceStory" class="experience-story" aria-live="polite" hidden></article>`;
     activeIndex = -1;
   };
   timeline.addEventListener('click', event => { const button = event.target.closest('[data-experience]'); if (button) show(Number(button.dataset.experience)); if (event.target.closest('.experience-story-close')) close(); });
@@ -249,7 +249,6 @@ function renderFeatured(el, post) {
     <div class="blog-featured-accent"></div>
     <div class="blog-featured-body">
       <div class="blog-featured-meta">
-        <span class="blog-featured-kicker">Start here</span>
         <span class="blog-row-tag">${escapeText(post.category || post.cat || 'personal')}</span>
         <span class="blog-featured-date">${fmtDate(post.created_at || post.date)}</span>
         <span class="blog-featured-read">${readTime(post.excerpt)} read</span>

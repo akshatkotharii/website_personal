@@ -2,7 +2,6 @@
 .nb-editor-section { padding-bottom: 16px; }
 .nb-section-heading { display: flex; justify-content: space-between; gap: 16px; margin-bottom: 3px; }
 .nb-section-heading span { font: 22px var(--serif); color: var(--black); }
-.nb-section-heading p { margin-top: 4px; font: 12px/1.55 var(--sans); color: var(--gray-600); }
 .nb-check { display: flex !important; align-items: center; gap: 8px; margin: 14px 0 4px !important; color: var(--black) !important; font: 13px var(--sans) !important; }
 .nb-check input { accent-color: var(--accent); }
 .nb-admin-details, .nb-log, .nb-recap { margin-top: 18px; border: 1px solid var(--gray-200); border-radius: 9px; background: #fafaf8; overflow: hidden; }

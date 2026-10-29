@@ -1,19 +1,10 @@
-/* First-visit launch. Query ?intro=1 replays it without clearing visitor storage. */
+/* Play introduction on every page load. */
 (() => {
   const launch = document.getElementById('siteLaunch');
   if (!launch) return;
 
-  const key = 'akshat-launch-seen-v1';
   const cards = [...launch.querySelectorAll('[data-launch-card]')];
   const skip = launch.querySelector('[data-launch-skip]');
-  const force = new URLSearchParams(window.location.search).get('intro') === '1';
-  let seen = false;
-  try { seen = localStorage.getItem(key) === 'true'; } catch (_) { /* Storage can be disabled. */ }
-
-  if (seen && !force) {
-    launch.hidden = true;
-    return;
-  }
 
   document.documentElement.classList.add('launch-open');
   document.body.classList.add('launch-active');
@@ -30,7 +21,6 @@
   };
   const finish = () => {
     if (launch.classList.contains('is-exiting')) return;
-    try { localStorage.setItem(key, 'true'); } catch (_) { /* Intro remains usable without storage. */ }
     document.documentElement.classList.remove('launch-open');
     document.body.classList.remove('launch-active');
     launch.classList.add('is-exiting');

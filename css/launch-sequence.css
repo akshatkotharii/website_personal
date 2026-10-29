@@ -1,7 +1,7 @@
 /* First-visit introduction. Own stylesheet: home remains unchanged underneath. */
 body.launch-active > :not(.site-launch):not(script) {
   filter: blur(20px) saturate(.58);
-  opacity: .34;
+  opacity: .48;
   pointer-events: none;
   transform: scale(1.035);
   transition: filter .72s ease, opacity .72s ease, transform .72s ease;
@@ -9,7 +9,7 @@ body.launch-active > :not(.site-launch):not(script) {
 .site-launch {
   --launch-ink: #171715;
   --launch-blue: #3136d9;
-  --launch-card: #dfb64a;
+  --launch-card: #dce9ed;
   position: fixed;
   inset: 0;
   z-index: 5000;
@@ -17,7 +17,10 @@ body.launch-active > :not(.site-launch):not(script) {
   overflow: hidden;
   display: grid;
   place-items: center;
-  background: rgba(247,247,244,.78);
+  background:
+    radial-gradient(ellipse at 16% 84%, rgba(49,54,217,.08), transparent 42%),
+    radial-gradient(ellipse at 88% 14%, rgba(84,132,157,.12), transparent 38%),
+    rgba(247,247,244,.72);
   color: var(--launch-ink);
   isolation: isolate;
   backdrop-filter: blur(12px);
@@ -33,12 +36,10 @@ body.launch-active > :not(.site-launch):not(script) {
   position: absolute;
   inset: 0;
   z-index: -1;
-  opacity: .16;
-  filter: blur(.45px);
+  opacity: .12;
+  filter: blur(.9px);
   pointer-events: none;
-  background:
-    linear-gradient(90deg, transparent 49.92%, currentColor 50%, transparent 50.08%) 0 0 / 25vw 100%,
-    linear-gradient(0deg, transparent 49.92%, currentColor 50%, transparent 50.08%) 0 0 / 100% 25vh;
+  background: radial-gradient(circle at center, rgba(255,255,255,.5), transparent 62%);
 }
 .site-launch-grid::before,
 .site-launch-grid::after {
@@ -79,11 +80,11 @@ body.launch-active > :not(.site-launch):not(script) {
 .launch-paper {
   position: relative;
   display: block;
-  width: min(64vw, 700px);
-  height: min(52svh, 450px);
+  width: min(62vw, 680px);
+  height: min(50svh, 430px);
   overflow: hidden;
-  background: var(--launch-card);
-  box-shadow: 0 24px 70px rgba(18,18,18,.18), 0 1px 0 rgba(20,20,20,.16);
+  background: radial-gradient(circle at 88% 7%, rgba(255,255,255,.2), transparent 42%), var(--launch-card);
+  box-shadow: 0 28px 76px rgba(18,18,18,.2), 0 1px 0 rgba(20,20,20,.16);
   transition: background-color .55s ease, box-shadow .45s ease, transform .65s cubic-bezier(.16,.8,.25,1);
 }
 .launch-paper::after {
@@ -107,9 +108,10 @@ body.launch-active > :not(.site-launch):not(script) {
 .launch-card.is-active .launch-photo { clip-path: inset(0); }
 .launch-photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .launch-card[data-stage="1"] .launch-photo {
-  width: 47%; height: 62%;
-  left: 7%; top: 16%; transform: rotate(-2deg) scale(1.035);
+  width: 34%; height: 76%;
+  left: 9%; top: 12%; transform: rotate(-2deg) scale(1.035);
 }
+.launch-card[data-stage="1"] .launch-photo img { object-position: 50% 63%; }
 .launch-card[data-stage="1"].is-active .launch-photo { transform: rotate(-2deg) scale(1); }
 .launch-card[data-stage="2"] .launch-photo {
   width: 58%; height: 54%;
@@ -117,8 +119,8 @@ body.launch-active > :not(.site-launch):not(script) {
 }
 .launch-card[data-stage="2"].is-active .launch-photo { transform: rotate(1.5deg) scale(1); }
 .launch-card[data-stage="3"] .launch-photo {
-  width: 56%; height: 56%;
-  right: 7%; left: auto; top: 13%; transform: scale(1.035);
+  width: 53%; height: 56%;
+  right: 9%; left: auto; top: 13%; transform: scale(1.035);
   box-shadow: 0 20px 48px rgba(0,0,0,.44);
 }
 .launch-card[data-stage="3"].is-active .launch-photo { transform: scale(1); }
@@ -182,7 +184,7 @@ body.launch-active > :not(.site-launch):not(script) {
   .site-launch-grid::before { width: 126vw; height: 126vw; }
   .site-launch-grid::after { width: 86vw; height: 86vw; }
   .launch-paper { width: min(82vw, 390px); height: min(58svh, 500px); }
-  .launch-card[data-stage="1"] .launch-photo { width: 58%; height: 51%; left: 7%; top: 15%; }
+  .launch-card[data-stage="1"] .launch-photo { width: 40%; height: 72%; left: 9%; top: 12%; }
   .launch-card[data-stage="2"] .launch-photo,
   .launch-card[data-stage="3"] .launch-photo { width: 78%; height: 48%; left: 11%; right: auto; top: 14%; }
   .launch-card[data-stage="2"] .launch-photo { width: 78%; height: 48%; left: 11%; right: auto; top: 14%; }

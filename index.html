@@ -12,6 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Inter:wght@300;400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/launch-sequence.css">
   <link rel="stylesheet" href="css/notebook.css">
   <link rel="stylesheet" href="css/experience-refresh.css">
   <link rel="stylesheet" href="css/margins-preview.css">
@@ -19,6 +20,42 @@
 <script src="js/safety.js"></script>
 </head>
 <body>
+
+<section class="site-launch" id="siteLaunch" aria-label="A short introduction to Akshat">
+  <div class="site-launch-grid" aria-hidden="true"></div>
+  <div class="site-launch-brand" aria-hidden="true">AK</div>
+  <div class="site-launch-stage" aria-live="polite">
+    <button class="launch-card is-active" type="button" data-launch-card data-stage="1" aria-label="First of four. Continue.">
+      <span class="launch-paper">
+        <span class="launch-photo launch-photo-yellow"><img src="images/launch/01-yellow.jpg" alt="Akshat as a child at dinner"></span>
+        <span class="launch-note">exploring.</span>
+        <span class="launch-count" aria-hidden="true">01 / 04</span>
+      </span>
+    </button>
+    <button class="launch-card" type="button" data-launch-card data-stage="2" aria-label="Second of four. Continue.">
+      <span class="launch-paper">
+        <span class="launch-photo launch-photo-red"><img src="images/launch/02-red.jpg" alt="Akshat as a child holding a phone"></span>
+        <span class="launch-note">tinkering.</span>
+        <span class="launch-count" aria-hidden="true">02 / 04</span>
+      </span>
+    </button>
+    <button class="launch-card" type="button" data-launch-card data-stage="3" aria-label="Third of four. Continue.">
+      <span class="launch-paper">
+        <span class="launch-photo launch-photo-mono"><img src="images/launch/03-siblings.jpg" alt="Akshat as a child with his sister"></span>
+        <span class="launch-note">thinking.</span>
+        <span class="launch-count" aria-hidden="true">03 / 04</span>
+      </span>
+    </button>
+    <button class="launch-card" type="button" data-launch-card data-stage="4" aria-label="Last of four. Enter Akshat’s site.">
+      <span class="launch-paper">
+        <span class="launch-photo launch-photo-now"><img src="images/launch/04-now.png" alt="Akshat Kothari"></span>
+        <span class="launch-note">Always exploring,<br>tinkering and thinking.</span>
+        <span class="launch-count" aria-hidden="true">04 / 04</span>
+      </span>
+    </button>
+  </div>
+  <button class="site-launch-skip" type="button" data-launch-skip>Skip intro</button>
+</section>
 
 <!-- ═══════════════════════════ NAV ═══════════════════════════ -->
 <nav>
@@ -266,6 +303,7 @@
 
 <!-- blog modal removed — use admin/index.html to post -->
 
+<script src="js/launch-sequence.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabase-config.js"></script>
 <script src="js/main.js?v=20261015"></script>

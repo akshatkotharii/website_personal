@@ -37,44 +37,44 @@
       const image = currentPhoto.querySelector('img');
       flyer.className = 'launch-flyer';
       flyer.innerHTML = `<img src="${image.currentSrc}" alt="">`;
-      const roundSize = Math.min(from.width, from.height);
-      const sourceX = from.left + from.width / 2;
-      const sourceY = from.top + from.height / 2;
-      const seedSize = Math.max(64, Math.min(104, roundSize * .3));
-      flyer.style.left = `${sourceX - seedSize / 2}px`;
-      flyer.style.top = `${sourceY - seedSize / 2}px`;
-      flyer.style.width = `${seedSize}px`;
-      flyer.style.height = `${seedSize}px`;
+      flyer.style.left = `${from.left}px`;
+      flyer.style.top = `${from.top}px`;
+      flyer.style.width = `${from.width}px`;
+      flyer.style.height = `${from.height}px`;
+      flyer.style.borderRadius = '2px';
+      flyer.style.opacity = '1';
       document.body.append(flyer);
-      const roundLeft = sourceX - roundSize / 2;
-      const roundTop = sourceY - roundSize / 2;
+      const duration = 920;
+      const easeOut = progress => 1 - Math.pow(1 - progress, 4);
       window.requestAnimationFrame(() => {
         document.documentElement.classList.add('launch-handoff');
         launch.classList.add('is-handing-off');
         document.body.classList.remove('launch-active');
         document.documentElement.classList.remove('launch-open');
-        flyer.classList.add('is-round');
-        flyer.style.left = `${roundLeft}px`;
-        flyer.style.top = `${roundTop}px`;
-        flyer.style.width = `${roundSize}px`;
-        flyer.style.height = `${roundSize}px`;
-        window.setTimeout(() => {
+        const startedAt = performance.now();
+        const move = now => {
+          const progress = Math.min((now - startedAt) / duration, 1);
+          const eased = easeOut(progress);
           const to = heroPhoto.getBoundingClientRect();
-          flyer.classList.add('is-flying');
-          flyer.style.left = `${to.left}px`;
-          flyer.style.top = `${to.top}px`;
-          flyer.style.width = `${to.width}px`;
-          flyer.style.height = `${to.height}px`;
-        }, 760);
+          flyer.style.left = `${from.left + (to.left - from.left) * eased}px`;
+          flyer.style.top = `${from.top + (to.top - from.top) * eased}px`;
+          flyer.style.width = `${from.width + (to.width - from.width) * eased}px`;
+          flyer.style.height = `${from.height + (to.height - from.height) * eased}px`;
+          flyer.style.borderRadius = `${eased * 50}%`;
+          if (progress < 1) {
+            window.requestAnimationFrame(move);
+            return;
+          }
+          document.documentElement.classList.remove('launch-handoff');
+          flyer.style.transition = 'opacity .18s ease';
+          window.requestAnimationFrame(() => { flyer.style.opacity = '0'; });
+          window.setTimeout(() => {
+            flyer.remove();
+            launch.hidden = true;
+          }, 190);
+        };
+        window.requestAnimationFrame(move);
       });
-      window.setTimeout(() => {
-        flyer.classList.add('is-settled');
-        document.documentElement.classList.remove('launch-handoff');
-        window.setTimeout(() => {
-          flyer.remove();
-          launch.hidden = true;
-        }, 190);
-      }, 1800);
       return;
     }
     document.documentElement.classList.remove('launch-open');

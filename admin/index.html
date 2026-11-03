@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-O7cg7fixNG0KYM9sVVcfI3Mc/wsOMYhYH7dXAuZyLRI=' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-3exiOu0iX/RrzZtqktlClVZEIL/sx7KvgTcMHplqPNA=' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self';">
   <meta name="robots" content="noindex,nofollow">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin — Akshat Kothari</title>
@@ -317,12 +317,9 @@
     <h1 class="login-title">Welcome back.</h1>
     <p class="login-sub">Sign in with your Supabase email to manage blog posts.</p>
 
-    <div class="setup-notice" id="setupNotice">
-      <strong>⚙ SETUP REQUIRED</strong>
-      Open <code>admin/index.html</code> and set your Supabase
-      <code>SUPABASE_URL</code> and <code>SUPABASE_ANON_KEY</code>
-      at the top of the script tag below. Then create a <code>posts</code>
-      table in Supabase — see README for the SQL.
+    <div class="setup-notice" id="setupNotice" hidden>
+      <strong>ADMIN CONNECTION UNAVAILABLE</strong>
+      Reload this page. If it still appears, check your connection and try again.
     </div>
 
     <div class="form-field">
@@ -573,15 +570,13 @@ document.addEventListener('click', event => {
   }
 });
 
-// Hide setup notice if credentials are set
-if (sb) {
-  const notice = document.getElementById('setupNotice');
-  if (notice) notice.style.display = 'none';
-}
+// Explain connection failure without exposing configuration details.
+const setupNotice = document.getElementById('setupNotice');
+if (setupNotice) setupNotice.hidden = Boolean(sb);
 
 // ── AUTH STATE ──────────────────────────────────────────────
 if (!sb) {
-  document.getElementById('loginError').textContent = 'Supabase not configured. Edit js/supabase-config.js first.';
+  document.getElementById('loginError').textContent = 'Could not connect to admin services. Reload once, then check your connection.';
   document.getElementById('loginError').classList.add('show');
 }
 

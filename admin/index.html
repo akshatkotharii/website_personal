@@ -257,6 +257,11 @@
     }
     .btn-publish-main:hover { opacity: 0.85; }
     .btn-publish-main:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-export-pdf {
+      padding: 11px 14px; border: 1.5px solid var(--gray-200); border-radius: 8px;
+      background: var(--white); color: var(--black); font: 500 13px var(--sans); cursor: pointer;
+    }
+    .btn-export-pdf:hover { border-color: var(--accent); color: var(--accent); }
 
     .publish-status {
       margin-top: 0.75rem; font-family: var(--mono); font-size: 11px;
@@ -534,6 +539,7 @@
           <input type="hidden" id="fSlug">
           <div class="write-actions">
             <button class="btn-publish-main" id="publishBtn">Publish →</button>
+            <button class="btn-export-pdf" type="button" id="exportPdfBtn">Export PDF</button>
           </div>
           <div class="publish-status" id="publishStatus"></div>
         </div>
@@ -975,6 +981,44 @@ function escHtml(s = '') {
 function escAttr(s = '') {
   return escHtml(s).replace(/'/g,'&#39;');
 }
+
+// ── PRINT-FAITHFUL PDF EXPORT ───────────────────────────────
+// Browser print keeps the article's live HTML, fonts, colours and images intact.
+function exportDraftPdf() {
+  const title = document.getElementById('fTitle').value.trim();
+  const content = getEditorContent();
+  const category = document.getElementById('fCategory').value;
+  const excerpt = document.getElementById('fExcerpt').value.trim();
+  if (!title || !content) {
+    setStatus('Add title and content before exporting.', 'err');
+    return;
+  }
+
+  const popup = window.open('', '_blank');
+  if (!popup) {
+    setStatus('Popup blocked. Allow popups, then export again.', 'err');
+    return;
+  }
+
+  const exportTitle = escapeText(title);
+  const exportCategory = escapeText(category);
+  const exportExcerpt = escapeText(excerpt);
+  const exportBody = safeMarkup(content);
+  const date = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
+  popup.document.write(`<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${exportTitle}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--white:#fff;--black:#0f0f0f;--gray-50:#f7f7f5;--gray-100:#efefed;--gray-200:#ddddd9;--gray-400:#9a9a96;--gray-600:#5c5c58;--accent:#1a1aff;--accent-soft:#e8e8ff;--serif:'Instrument Serif',Georgia,serif;--sans:'Inter',system-ui,sans-serif;--mono:'JetBrains Mono',monospace;--radius:12px}
+  *{box-sizing:border-box} html{-webkit-print-color-adjust:exact;print-color-adjust:exact} body{margin:0;background:var(--white);color:var(--black);font-family:var(--sans);-webkit-font-smoothing:antialiased}.post-wrap{max-width:680px;margin:0 auto;padding:56px 32px 80px}.post-meta{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font:11px var(--mono);color:var(--gray-400);margin-bottom:12px}.post-meta-tag{background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:10px}.post-title{font:50px/1.08 var(--serif);letter-spacing:-.03em;margin:0 0 32px}.post-divider{width:36px;height:2px;background:var(--accent);margin-bottom:40px}.post-excerpt{font:22px/1.5 var(--serif);color:var(--black);margin:-8px 0 32px}.post-body{font-size:17px;line-height:1.88;color:var(--gray-600)}.post-body h2{font:26px/1.2 var(--serif);letter-spacing:-.02em;color:var(--black);margin:40px 0 16px}.post-body h3{font:600 16px var(--sans);color:var(--black);margin:32px 0 12px}.post-body p{margin:0 0 22px}.post-body strong{color:var(--black);font-weight:500}.post-body a{color:var(--accent);text-decoration:underline}.post-body blockquote{border-left:3px solid var(--accent);margin:32px 0;padding:8px 24px;color:var(--black);font:italic 20px/1.5 var(--serif)}.post-body ul,.post-body ol{padding-left:24px;margin:0 0 22px}.post-body li{margin-bottom:6px}.post-body figure{margin:32px 0;break-inside:avoid}.post-body img{display:block;width:100%;height:auto;border:1px solid var(--gray-100);border-radius:var(--radius)}.post-body figcaption{margin-top:10px;color:var(--gray-400);text-align:center;font:11px/1.5 var(--mono)}.post-body pre{overflow:auto;padding:20px 24px;border-radius:var(--radius);background:var(--black);color:#e2e8f0;font:13px/1.7 var(--mono);white-space:pre-wrap}.post-body code{font:14px var(--mono);background:var(--gray-50);border:1px solid var(--gray-100);padding:2px 6px;border-radius:4px;color:var(--accent)}.post-body pre code{padding:0;border:0;background:none;color:inherit}.post-body table{width:100%;border-collapse:collapse;margin:32px 0;font-size:15px;line-height:1.5}.post-body th,.post-body td{padding:10px 14px;border:1px solid var(--gray-200);text-align:left;vertical-align:top}.post-body th{background:var(--gray-50);font:600 12px var(--mono);text-transform:uppercase;letter-spacing:.05em}.post-body .img-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:32px 0}.post-body .img-grid[data-cols="1"]{grid-template-columns:1fr}.post-body .img-grid[data-cols="3"],.post-body .img-grid[data-cols="4"]{grid-template-columns:repeat(2,minmax(0,1fr))}.post-body .img-grid-cell{margin:0;min-width:0}@media print{@page{size:A4;margin:16mm}.post-wrap{max-width:none;padding:0}.post-title{font-size:44px}.post-body a{color:var(--accent)}.post-body h2,.post-body h3,blockquote,figure,table{break-inside:avoid}a[href]::after{content:''}}@media(max-width:600px){.post-wrap{padding:32px 20px 56px}.post-title{font-size:38px}.post-body{font-size:16px}.post-body .img-grid{grid-template-columns:1fr}}
+</style></head><body><main class="post-wrap"><div class="post-meta"><span>${date}</span><span class="post-meta-tag">${exportCategory}</span></div><h1 class="post-title">${exportTitle}</h1>${exportExcerpt ? `<p class="post-excerpt">${exportExcerpt}</p>` : ''}<div class="post-divider"></div><article class="post-body">${exportBody}</article></main><script>const done=()=>setTimeout(()=>print(),120);Promise.all([...document.images].map(i=>i.complete?Promise.resolve():new Promise(r=>{i.onload=i.onerror=r}))).then(()=>document.fonts?.ready||null).then(done);<\/script></body></html>`);
+  popup.document.close();
+  setStatus('Print window opened. Choose “Save as PDF” to export.', 'ok');
+}
+
+document.getElementById('exportPdfBtn').addEventListener('click', exportDraftPdf);
 
 // ── PUBLISH / EDIT ──────────────────────────────────────────
 document.getElementById('publishBtn').addEventListener('click', async () => {

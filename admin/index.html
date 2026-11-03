@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-3exiOu0iX/RrzZtqktlClVZEIL/sx7KvgTcMHplqPNA=' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-gupXqt33lZ03vDbx/+Hc9dUHJLSjYi4uplJbLyUzqFE=' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co; worker-src 'self' https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self'; form-action 'self';">
   <meta name="robots" content="noindex,nofollow">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin — Akshat Kothari</title>
@@ -14,6 +14,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../js/supabase-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -257,11 +258,11 @@
     }
     .btn-publish-main:hover { opacity: 0.85; }
     .btn-publish-main:disabled { opacity: 0.5; cursor: not-allowed; }
-    .btn-export-pdf {
+    .btn-import-pdf {
       padding: 11px 14px; border: 1.5px solid var(--gray-200); border-radius: 8px;
       background: var(--white); color: var(--black); font: 500 13px var(--sans); cursor: pointer;
     }
-    .btn-export-pdf:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-import-pdf:hover { border-color: var(--accent); color: var(--accent); }
 
     .publish-status {
       margin-top: 0.75rem; font-family: var(--mono); font-size: 11px;
@@ -523,11 +524,13 @@
             </div>
             <div class="rich-editor" id="richEditor" contenteditable="true" data-placeholder="Write your blog here. Drag images in, use toolbar, or import a Word doc below."></div>
             <textarea class="field-textarea editor-source" id="fContent" placeholder="HTML source"></textarea>
-            <div class="editor-help">Import `.docx`, upload image files, paste image URLs, or edit HTML directly. Images from your computer are embedded into post HTML.</div>
+            <div class="editor-help">Import `.docx` or PDF, upload image files, paste image URLs, or edit HTML directly. PDF pages are kept visually exact.</div>
           </div>
           <div class="field-group">
-            <label class="field-label">Import visual content</label>
+            <label class="field-label">Import document or visuals</label>
             <input type="file" class="field-input" id="docImport" accept=".docx">
+            <div style="height:8px"></div>
+            <input type="file" class="field-input" id="pdfImport" accept="application/pdf,.pdf">
             <div style="height:8px"></div>
             <input type="file" class="field-input" id="imageUpload" accept="image/*" multiple>
           </div>
@@ -536,7 +539,7 @@
           <input type="hidden" id="fSlug">
           <div class="write-actions">
             <button class="btn-publish-main" id="publishBtn">Publish →</button>
-            <button class="btn-export-pdf" type="button" id="exportPdfBtn">Export PDF</button>
+            <button class="btn-import-pdf" type="button" id="importPdfBtn">Import PDF</button>
           </div>
           <div class="publish-status" id="publishStatus"></div>
         </div>
@@ -977,43 +980,69 @@ function escAttr(s = '') {
   return escHtml(s).replace(/'/g,'&#39;');
 }
 
-// ── PRINT-FAITHFUL PDF EXPORT ───────────────────────────────
-// Browser print keeps the article's live HTML, fonts, colours and images intact.
-function exportDraftPdf() {
-  const title = document.getElementById('fTitle').value.trim();
-  const content = getEditorContent();
-  const category = document.getElementById('fCategory').value;
-  const excerpt = document.getElementById('fExcerpt').value.trim();
-  if (!title || !content) {
-    setStatus('Add title and content before exporting.', 'err');
+// ── PDF IMPORT ──────────────────────────────────────────────
+// Page rendering is deliberate: it preserves each supplied PDF page exactly.
+const PDF_PAGE_LIMIT = 12;
+const PDF_SIZE_LIMIT = 12 * 1024 * 1024;
+const PDF_CONTENT_LIMIT = 9_000_000;
+
+async function importPdfFile(file) {
+  if (!file) return;
+  if (!window.pdfjsLib) {
+    setStatus('PDF reader did not load. Reload once, then try again.', 'err');
+    return;
+  }
+  if (file.size > PDF_SIZE_LIMIT) {
+    setStatus('PDF is over 12 MB. Compress it first, then import.', 'err');
     return;
   }
 
-  const popup = window.open('', '_blank');
-  if (!popup) {
-    setStatus('Popup blocked. Allow popups, then export again.', 'err');
-    return;
-  }
+  const existing = getEditorContent();
+  const importButton = document.getElementById('importPdfBtn');
+  importButton.disabled = true;
+  importButton.textContent = 'Importing…';
+  setStatus('Reading PDF…');
 
-  const exportTitle = escapeText(title);
-  const exportCategory = escapeText(category);
-  const exportExcerpt = escapeText(excerpt);
-  const exportBody = safeMarkup(content);
-  const date = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
-  popup.document.write(`<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${exportTitle}</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-  :root{--white:#fff;--black:#0f0f0f;--gray-50:#f7f7f5;--gray-100:#efefed;--gray-200:#ddddd9;--gray-400:#9a9a96;--gray-600:#5c5c58;--accent:#1a1aff;--accent-soft:#e8e8ff;--serif:'Instrument Serif',Georgia,serif;--sans:'Inter',system-ui,sans-serif;--mono:'JetBrains Mono',monospace;--radius:12px}
-  *{box-sizing:border-box} html{-webkit-print-color-adjust:exact;print-color-adjust:exact} body{margin:0;background:var(--white);color:var(--black);font-family:var(--sans);-webkit-font-smoothing:antialiased}.post-wrap{max-width:680px;margin:0 auto;padding:56px 32px 80px}.post-meta{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font:11px var(--mono);color:var(--gray-400);margin-bottom:12px}.post-meta-tag{background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:10px}.post-title{font:50px/1.08 var(--serif);letter-spacing:-.03em;margin:0 0 32px}.post-divider{width:36px;height:2px;background:var(--accent);margin-bottom:40px}.post-excerpt{font:22px/1.5 var(--serif);color:var(--black);margin:-8px 0 32px}.post-body{font-size:17px;line-height:1.88;color:var(--gray-600)}.post-body h2{font:26px/1.2 var(--serif);letter-spacing:-.02em;color:var(--black);margin:40px 0 16px}.post-body h3{font:600 16px var(--sans);color:var(--black);margin:32px 0 12px}.post-body p{margin:0 0 22px}.post-body strong{color:var(--black);font-weight:500}.post-body a{color:var(--accent);text-decoration:underline}.post-body blockquote{border-left:3px solid var(--accent);margin:32px 0;padding:8px 24px;color:var(--black);font:italic 20px/1.5 var(--serif)}.post-body ul,.post-body ol{padding-left:24px;margin:0 0 22px}.post-body li{margin-bottom:6px}.post-body figure{margin:32px 0;break-inside:avoid}.post-body img{display:block;width:100%;height:auto;border:1px solid var(--gray-100);border-radius:var(--radius)}.post-body figcaption{margin-top:10px;color:var(--gray-400);text-align:center;font:11px/1.5 var(--mono)}.post-body pre{overflow:auto;padding:20px 24px;border-radius:var(--radius);background:var(--black);color:#e2e8f0;font:13px/1.7 var(--mono);white-space:pre-wrap}.post-body code{font:14px var(--mono);background:var(--gray-50);border:1px solid var(--gray-100);padding:2px 6px;border-radius:4px;color:var(--accent)}.post-body pre code{padding:0;border:0;background:none;color:inherit}.post-body table{width:100%;border-collapse:collapse;margin:32px 0;font-size:15px;line-height:1.5}.post-body th,.post-body td{padding:10px 14px;border:1px solid var(--gray-200);text-align:left;vertical-align:top}.post-body th{background:var(--gray-50);font:600 12px var(--mono);text-transform:uppercase;letter-spacing:.05em}.post-body .img-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:32px 0}.post-body .img-grid[data-cols="1"]{grid-template-columns:1fr}.post-body .img-grid[data-cols="3"],.post-body .img-grid[data-cols="4"]{grid-template-columns:repeat(2,minmax(0,1fr))}.post-body .img-grid-cell{margin:0;min-width:0}@media print{@page{size:A4;margin:16mm}.post-wrap{max-width:none;padding:0}.post-title{font-size:44px}.post-body a{color:var(--accent)}.post-body h2,.post-body h3,blockquote,figure,table{break-inside:avoid}a[href]::after{content:''}}@media(max-width:600px){.post-wrap{padding:32px 20px 56px}.post-title{font-size:38px}.post-body{font-size:16px}.post-body .img-grid{grid-template-columns:1fr}}
-</style></head><body><main class="post-wrap"><div class="post-meta"><span>${date}</span><span class="post-meta-tag">${exportCategory}</span></div><h1 class="post-title">${exportTitle}</h1>${exportExcerpt ? `<p class="post-excerpt">${exportExcerpt}</p>` : ''}<div class="post-divider"></div><article class="post-body">${exportBody}</article></main><script>const done=()=>setTimeout(()=>print(),120);Promise.all([...document.images].map(i=>i.complete?Promise.resolve():new Promise(r=>{i.onload=i.onerror=r}))).then(()=>document.fonts?.ready||null).then(done);<\/script></body></html>`);
-  popup.document.close();
-  setStatus('Print window opened. Choose “Save as PDF” to export.', 'ok');
+  try {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+    const data = new Uint8Array(await file.arrayBuffer());
+    const pdf = await pdfjsLib.getDocument({ data }).promise;
+    if (pdf.numPages > PDF_PAGE_LIMIT) throw new Error(`PDF has ${pdf.numPages} pages. Import up to ${PDF_PAGE_LIMIT} pages at once.`);
+
+    const pages = [];
+    for (let number = 1; number <= pdf.numPages; number += 1) {
+      setStatus(`Rendering page ${number} of ${pdf.numPages}…`);
+      const page = await pdf.getPage(number);
+      const baseViewport = page.getViewport({ scale: 1 });
+      const scale = Math.min(1.6, 1400 / baseViewport.width);
+      const viewport = page.getViewport({ scale });
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.ceil(viewport.width);
+      canvas.height = Math.ceil(viewport.height);
+      const context = canvas.getContext('2d', { alpha: false });
+      context.fillStyle = '#ffffff';
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      await page.render({ canvasContext: context, viewport }).promise;
+      const image = canvas.toDataURL('image/jpeg', 0.92);
+      pages.push(`<figure class="pdf-page"><img src="${image}" alt="${escAttr(`Page ${number} from ${file.name}`)}"><figcaption>Page ${number}</figcaption></figure>`);
+    }
+
+    const imported = pages.join('');
+    if (existing.length + imported.length > PDF_CONTENT_LIMIT) throw new Error('Rendered PDF is too large for one post. Use fewer pages or a smaller PDF.');
+    setEditorContent(`${existing}${existing ? '<hr>' : ''}${imported}`);
+    setStatus(`${pdf.numPages} PDF page${pdf.numPages === 1 ? '' : 's'} imported exactly as designed.`, 'ok');
+  } catch (error) {
+    console.error(error);
+    setStatus(error.message || 'Could not import this PDF.', 'err');
+  } finally {
+    importButton.disabled = false;
+    importButton.textContent = 'Import PDF';
+    document.getElementById('pdfImport').value = '';
+  }
 }
 
-document.getElementById('exportPdfBtn').addEventListener('click', exportDraftPdf);
+document.getElementById('importPdfBtn').addEventListener('click', () => document.getElementById('pdfImport').click());
+document.getElementById('pdfImport').addEventListener('change', event => importPdfFile(event.target.files[0]));
 
 // ── PUBLISH / EDIT ──────────────────────────────────────────
 document.getElementById('publishBtn').addEventListener('click', async () => {

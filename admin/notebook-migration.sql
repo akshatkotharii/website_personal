@@ -74,9 +74,6 @@ language plpgsql set search_path=public as $$
 begin
  perform pg_advisory_xact_lock(814510);
  if new.status in ('paused','dropped') then new.pinned=false; end if;
- if new.pinned and (select count(*) from public.notebook_projects where pinned and id<>new.id)>=5 then
-   raise exception 'Your desk holds five chapters. Unpin another chapter first.';
- end if;
  new.updated_at=now(); return new;
 end $$;
 drop trigger if exists notebook_project_guard on public.notebook_projects;

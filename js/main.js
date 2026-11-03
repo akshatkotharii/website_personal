@@ -108,9 +108,17 @@ async function loadBlog() {
 
   showSkeleton(featured, grid);
 
-  // Try starred posts first; fall back to latest 5.
+  // Keep admin-starred posts first; fill remaining places with recent static stories.
   let posts = await fetchFeaturedPosts();
-  if (!posts.length) posts = await fetchPosts(4);
+  const hasStarredPosts = posts.length > 0;
+  if (!hasStarredPosts) posts = await fetchPosts(4);
+  const staticPosts = await loadStaticPosts();
+  const additions = staticPosts.filter(item => !posts.some(post => post.slug === item.slug));
+  posts = hasStarredPosts
+    ? [...posts, ...additions].slice(0, 4)
+    : [...posts, ...additions]
+        .sort((a, b) => new Date(b.created_at || b.date) - new Date(a.created_at || a.date))
+        .slice(0, 4);
 
   if (!posts.length) {
     if (featured) featured.style.display = 'none';
@@ -160,7 +168,7 @@ async function fetchPosts(limit = 4, offset = 0) {
 }
 
 async function loadStaticPosts() {
-  const slugs = ['building-a-place-for-clean-energy-research', 'aliasearch-research-before-reachout', 'why-i-started-this-site'];
+  const slugs = ['smart-energy-nudging', 'outreach-brain', 'spinsync-shared-laundry', 'building-a-place-for-clean-energy-research', 'aliasearch-research-before-reachout', 'why-i-started-this-site'];
   const posts = [];
   for (const slug of slugs) {
     try {

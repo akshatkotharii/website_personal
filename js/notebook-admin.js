@@ -53,7 +53,6 @@
     event.preventDefault();const form=event.target,button=form.querySelector('[type=submit]');button.disabled=true;
     try {
       const d=new FormData(form),status=d.get('status'),pinned=d.has('pinned')&&!['paused','dropped'].includes(status);
-      if(pinned&&projects.filter(p=>p.pinned&&p.id!==active).length>=5)throw Error('Your desk holds five chapters. Unpin one or move it to the shelf first.');
       const payload={id:active||crypto.randomUUID(),title:d.get('title').trim(),summary:d.get('summary').trim(),kind:d.get('kind'),status,icon:d.get('icon'),animation:d.get('animation'),pinned,current:d.get('current').trim(),thinking:d.get('thinking').trim(),next_step:d.get('next_step').trim(),url:url(d.get('url').trim()),thread_url:url(d.get('thread_url').trim()),start_date:d.get('start_date')||null,sort_order:Number(d.get('sort_order'))||0,updated_at:new Date().toISOString()};
       if(!payload.title)throw Error('Chapter name is required.');
       if(d.has('progress'))payload.progress=Number(d.get('progress'));

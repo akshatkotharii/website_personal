@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ML3+Ff4Mq1e0ho428O6KYjaXJZE+lNIJebyp/0j2dNQ=' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-qL4DWoNWtMor+8Ncc0QwvOygq712MVrEtshdZ0PQyGU=' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self';">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Blog — Akshat Kothari</title>
   <meta name="description" content="Writing on tech, research, startups, and daily life by Akshat Kothari.">
@@ -15,14 +15,14 @@
     .blog-page-wrap {
       max-width: 800px; margin: 0 auto;
       padding: 0 clamp(1.25rem,5vw,2.5rem);
-      padding-top: calc(var(--offset) + 56px);
-      padding-bottom: 80px;
+      padding-top: calc(var(--offset) + 40px);
+      padding-bottom: 64px;
     }
     .blog-page-back {
       display: inline-flex; align-items: center; gap: 6px;
       font-family: var(--mono); font-size: 11px; color: var(--accent);
       text-decoration: none; letter-spacing: 0.1em; text-transform: uppercase;
-      margin-bottom: 2rem; transition: opacity 0.18s;
+      margin-bottom: 1.5rem; transition: opacity 0.18s;
     }
     .blog-page-back:hover { opacity: 0.65; }
     .blog-page-title {
@@ -30,8 +30,8 @@
       letter-spacing: -0.03em; line-height: 1.08; margin-bottom: 0.75rem;
     }
     .blog-filters {
-      display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 2.5rem;
-      padding-bottom: 1.5rem; border-bottom: 1px solid var(--gray-100);
+      display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1.75rem;
+      padding-bottom: 1rem; border-bottom: 1px solid var(--gray-100);
     }
     .filter-pill {
       font-family: var(--mono); font-size: 11px; font-weight: 500;
@@ -45,7 +45,7 @@
     .blog-all-row {
       display: grid; grid-template-columns: 72px 1fr auto;
       gap: 1.5rem; align-items: start;
-      padding: 1.6rem 0; border-bottom: 1px solid var(--gray-100);
+      padding: 1.25rem 0; border-bottom: 1px solid var(--gray-100);
       text-decoration: none; color: inherit; transition: padding-left 0.2s;
     }
     .blog-all-row:first-child { border-top: 1px solid var(--gray-100); }
@@ -122,7 +122,7 @@
 <script>
 const PER_PAGE = 10;
 let page = 0, totalCount = 0, activeFilter = 'all';
-const STATIC_POST_SLUGS = ['building-a-place-for-clean-energy-research','aliasearch-research-before-reachout','why-i-started-this-site','five-days-in-singapore'];
+const STATIC_POST_SLUGS = ['smart-energy-nudging','outreach-brain','spinsync-shared-laundry','building-a-place-for-clean-energy-research','aliasearch-research-before-reachout','why-i-started-this-site','five-days-in-singapore'];
 
 // mobile nav
 const toggle = document.getElementById('navToggle');
@@ -156,43 +156,32 @@ async function loadPosts() {
     </div>`).join('');
 
   const sb = getSupabase();
-  let posts = [], databaseLoaded = false;
-
+  let databasePosts = [];
   if (sb) {
     try {
-      let q = sb.from('posts')
-        .select('id,title,slug,category,excerpt,created_at', { count: 'exact' })
+      const { data, error } = await sb.from('posts')
+        .select('id,title,slug,category,excerpt,created_at')
         .order('created_at', { ascending: false })
-        .range(page * PER_PAGE, (page + 1) * PER_PAGE - 1);
-      if (activeFilter !== 'all') q = q.eq('category', activeFilter);
-      const { data, error, count } = await q;
-      if (!error) { posts = data || []; totalCount = count || 0; databaseLoaded = true; }
-    } catch(e) { console.warn(e); }
+        .range(0, 999);
+      if (!error) databasePosts = data || [];
+      else console.warn('Blog list query failed:', error);
+    } catch(e) { console.warn('Blog list query failed:', e); }
   }
 
-  // Website-hosted posts remain available in the blog, but never feed the home-page cards.
-  if (page === 0) {
-    const staticPosts = [];
-    for (const slug of STATIC_POST_SLUGS) {
-      try {
-        const r = await fetch(`posts/${slug}.json`);
-        if (r.ok) {
-          const p = await r.json();
-          if (activeFilter === 'all' || (p.cat || p.category) === activeFilter) staticPosts.push(p);
-        }
-      } catch(_) {}
-    }
-    if (!databaseLoaded) {
-      posts = staticPosts;
-      totalCount = posts.length;
-    } else {
-      const newStaticPosts = staticPosts.filter(p => !posts.some(dbPost => dbPost.slug === p.slug));
-      posts = [...posts, ...newStaticPosts]
-        .sort((a, b) => new Date(b.created_at || b.date) - new Date(a.created_at || a.date))
-        .slice(0, PER_PAGE);
-      totalCount += newStaticPosts.length;
-    }
+  // Merge code-published stories with admin posts before paging, so no entries vanish between pages.
+  const staticPosts = [];
+  for (const slug of STATIC_POST_SLUGS) {
+    try {
+      const response = await fetch(`posts/${slug}.json`);
+      if (response.ok) staticPosts.push(await response.json());
+    } catch(_) {}
   }
+  const knownSlugs = new Set(databasePosts.map(post => post.slug));
+  const combined = [...databasePosts, ...staticPosts.filter(post => !knownSlugs.has(post.slug))];
+  const filtered = combined.filter(post => activeFilter === 'all' || (post.category || post.cat) === activeFilter);
+  filtered.sort((a, b) => new Date(b.created_at || b.date) - new Date(a.created_at || a.date));
+  totalCount = filtered.length;
+  const posts = filtered.slice(page * PER_PAGE, (page + 1) * PER_PAGE);
 
   if (!posts.length) {
     list.innerHTML = `<div class="blog-notice">No posts${activeFilter!=='all'?' in this category':''} yet — <a href="../admin/index.html">write one</a>.</div>`;

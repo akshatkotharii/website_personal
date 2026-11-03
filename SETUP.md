@@ -15,7 +15,7 @@ Do not run old copies of `admin/schema.sql`: earlier versions contained destruct
 
 ## Editing
 
-- **On my desk:** up to five pinned chapters with planned, building, or shipped status.
+- **On my desk:** any number of pinned chapters with planned, building, or shipped status.
 - **Shipped:** completed/live projects remain discoverable here even when unpinned.
 - **On the shelf:** paused or dropped projects, including their history.
 - **All chapters:** every retained project.
@@ -23,6 +23,8 @@ Do not run old copies of `admin/schema.sql`: earlier versions contained destruct
 - The ML sprint starts planned on 5 September 2026 with 0 completed days. Change status and completed-day count yourself; the calendar never fabricates progress.
 - Updates may be drafts or public. Weekly recaps include only public updates from the selected seven-day window, using India time.
 - Generate a recap, edit it, and move it to the blog editor. Review and publish normally. Publishing does not automatically send email.
+
+Existing installs: if the database still has the old project-count limit, run `admin/notebook-unlimited-projects.sql` once in Supabase SQL Editor. The admin page itself has no project cap.
 
 ## Newsletter delivery
 

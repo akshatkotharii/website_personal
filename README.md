@@ -29,7 +29,7 @@ akshat-portfolio/
 3. Post appears immediately and is saved in browser (localStorage)
 4. ⚠️ Only lives in that browser — use Option B to publish permanently
 
-### Option B — JSON file (permanent, works on Vercel/GitHub)
+### Option B — JSON file (permanent, works on GitHub Pages)
 1. Create a new file in `blog/posts/` named `your-post-slug.json`
 2. Use this template:
 
@@ -58,20 +58,10 @@ akshat-portfolio/
 ```
 
 3. Put photos/videos in `images/blog/`, then reference them with paths like `../images/blog/photo.jpg`. Media appears below the post heading, before the article body.
-4. Add a row in `index.html` inside `<div class="blog-list">`:
+4. For long posts, keep the article body in a separate `blog/posts/your-post-slug.html` file and set `"content_file": "posts/your-post-slug.html"` in its JSON metadata. Short posts can keep using the `html` field.
+5. Add the slug to `STATIC_POST_SLUGS` in `blog/index.html` and `staticSlugs` in `blog/post.html`. Add it to `loadStaticPosts()` in `js/main.js` if it should also appear on the homepage when there is room.
 
-```html
-<a href="blog/post.html?slug=your-post-slug" class="blog-row">
-  <div class="blog-row-date">Jun 17<br>2025</div>
-  <div>
-    <div class="blog-row-title">Your Post Title</div>
-    <div class="blog-row-excerpt">One sentence excerpt.</div>
-  </div>
-  <div class="blog-row-tag">personal</div>
-</a>
-```
-
-5. Git commit → push → Vercel auto-deploys in ~30 seconds
+6. Git commit → push → GitHub Pages publishes the site.
 
 ---
 

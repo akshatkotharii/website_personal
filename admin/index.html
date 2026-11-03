@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-gupXqt33lZ03vDbx/+Hc9dUHJLSjYi4uplJbLyUzqFE=' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co; worker-src 'self' https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self'; form-action 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-velpR3tQqoElFlK2s+s7hQ9jja0tlFGEuwR13wZ7m/w=' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co; frame-src https://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self';">
   <meta name="robots" content="noindex,nofollow">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin — Akshat Kothari</title>
@@ -14,7 +14,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../js/supabase-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -524,7 +523,7 @@
             </div>
             <div class="rich-editor" id="richEditor" contenteditable="true" data-placeholder="Write your blog here. Drag images in, use toolbar, or import a Word doc below."></div>
             <textarea class="field-textarea editor-source" id="fContent" placeholder="HTML source"></textarea>
-            <div class="editor-help">Import `.docx` or PDF, upload image files, paste image URLs, or edit HTML directly. PDF pages are kept visually exact.</div>
+            <div class="editor-help">Import `.docx`, upload a PDF, add image files, paste image URLs, or edit HTML directly. PDFs stay original, including links and layout.</div>
           </div>
           <div class="field-group">
             <label class="field-label">Import document or visuals</label>
@@ -537,6 +536,7 @@
           <input type="hidden" id="fEditId">
           <input type="hidden" id="fParentId">
           <input type="hidden" id="fSlug">
+          <input type="hidden" id="fPdfPath">
           <div class="write-actions">
             <button class="btn-publish-main" id="publishBtn">Publish →</button>
             <button class="btn-import-pdf" type="button" id="importPdfBtn">Import PDF</button>
@@ -981,68 +981,41 @@ function escAttr(s = '') {
 }
 
 // ── PDF IMPORT ──────────────────────────────────────────────
-// Page rendering is deliberate: it preserves each supplied PDF page exactly.
-const PDF_PAGE_LIMIT = 12;
-const PDF_SIZE_LIMIT = 12 * 1024 * 1024;
-const PDF_CONTENT_LIMIT = 9_000_000;
+// Keep the original file in Storage. The public post uses the browser's PDF reader,
+// so every page, image, colour, spacing and link remains the original document.
+const PDF_BUCKET = 'portfolio-pdfs';
+let pendingPdfFile = null;
 
-async function importPdfFile(file) {
+function stagePdfFile(file) {
   if (!file) return;
-  if (!window.pdfjsLib) {
-    setStatus('PDF reader did not load. Reload once, then try again.', 'err');
+  if (file.type !== 'application/pdf' && !/\.pdf$/i.test(file.name)) {
+    setStatus('Choose a PDF file.', 'err');
     return;
   }
-  if (file.size > PDF_SIZE_LIMIT) {
-    setStatus('PDF is over 12 MB. Compress it first, then import.', 'err');
-    return;
+  pendingPdfFile = file;
+  if (!document.getElementById('fTitle').value.trim()) {
+    document.getElementById('fTitle').value = file.name.replace(/\.pdf$/i, '').replace(/[-_]+/g, ' ');
   }
+  setStatus(`PDF ready: ${file.name}. Publish to upload original file.`, 'ok');
+}
 
-  const existing = getEditorContent();
-  const importButton = document.getElementById('importPdfBtn');
-  importButton.disabled = true;
-  importButton.textContent = 'Importing…';
-  setStatus('Reading PDF…');
+function createPdfPath(file) {
+  const cleanName = file.name.toLowerCase().replace(/[^a-z0-9._-]+/g, '-').replace(/^-+|-+$/g, '') || 'document.pdf';
+  return `posts/${Date.now()}-${crypto.randomUUID()}-${cleanName}`;
+}
 
-  try {
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
-    const data = new Uint8Array(await file.arrayBuffer());
-    const pdf = await pdfjsLib.getDocument({ data }).promise;
-    if (pdf.numPages > PDF_PAGE_LIMIT) throw new Error(`PDF has ${pdf.numPages} pages. Import up to ${PDF_PAGE_LIMIT} pages at once.`);
-
-    const pages = [];
-    for (let number = 1; number <= pdf.numPages; number += 1) {
-      setStatus(`Rendering page ${number} of ${pdf.numPages}…`);
-      const page = await pdf.getPage(number);
-      const baseViewport = page.getViewport({ scale: 1 });
-      const scale = Math.min(1.6, 1400 / baseViewport.width);
-      const viewport = page.getViewport({ scale });
-      const canvas = document.createElement('canvas');
-      canvas.width = Math.ceil(viewport.width);
-      canvas.height = Math.ceil(viewport.height);
-      const context = canvas.getContext('2d', { alpha: false });
-      context.fillStyle = '#ffffff';
-      context.fillRect(0, 0, canvas.width, canvas.height);
-      await page.render({ canvasContext: context, viewport }).promise;
-      const image = canvas.toDataURL('image/jpeg', 0.92);
-      pages.push(`<figure class="pdf-page"><img src="${image}" alt="${escAttr(`Page ${number} from ${file.name}`)}"><figcaption>Page ${number}</figcaption></figure>`);
-    }
-
-    const imported = pages.join('');
-    if (existing.length + imported.length > PDF_CONTENT_LIMIT) throw new Error('Rendered PDF is too large for one post. Use fewer pages or a smaller PDF.');
-    setEditorContent(`${existing}${existing ? '<hr>' : ''}${imported}`);
-    setStatus(`${pdf.numPages} PDF page${pdf.numPages === 1 ? '' : 's'} imported exactly as designed.`, 'ok');
-  } catch (error) {
-    console.error(error);
-    setStatus(error.message || 'Could not import this PDF.', 'err');
-  } finally {
-    importButton.disabled = false;
-    importButton.textContent = 'Import PDF';
-    document.getElementById('pdfImport').value = '';
-  }
+async function uploadPendingPdf() {
+  if (!pendingPdfFile) return document.getElementById('fPdfPath').value || null;
+  const path = createPdfPath(pendingPdfFile);
+  const { error } = await sb.storage.from(PDF_BUCKET).upload(path, pendingPdfFile, {
+    contentType: 'application/pdf', upsert: false, cacheControl: '3600'
+  });
+  if (error) throw error;
+  return path;
 }
 
 document.getElementById('importPdfBtn').addEventListener('click', () => document.getElementById('pdfImport').click());
-document.getElementById('pdfImport').addEventListener('change', event => importPdfFile(event.target.files[0]));
+document.getElementById('pdfImport').addEventListener('change', event => stagePdfFile(event.target.files[0]));
 
 // ── PUBLISH / EDIT ──────────────────────────────────────────
 document.getElementById('publishBtn').addEventListener('click', async () => {
@@ -1053,11 +1026,12 @@ document.getElementById('publishBtn').addEventListener('click', async () => {
   const editId   = document.getElementById('fEditId').value;
   const parentId = document.getElementById('fParentId').value;
   const savedSlug = document.getElementById('fSlug').value;
+  const existingPdfPath = document.getElementById('fPdfPath').value;
   const status   = document.getElementById('publishStatus');
   const btn      = document.getElementById('publishBtn');
 
-  if (!title || !content) {
-    setStatus('Title and content are required.', 'err');
+  if (!title || (!content && !pendingPdfFile && !existingPdfPath)) {
+    setStatus('Title plus blog content or a PDF are required.', 'err');
     return;
   }
 
@@ -1079,19 +1053,27 @@ document.getElementById('publishBtn').addEventListener('click', async () => {
       .map(p => `<p>${p.replace(/\n/g,'<br>')}</p>`)
       .join('');
 
-  const payload = {
-    title,
-    slug,
-    category,
-    excerpt: excerpt || content.replace(/<[^>]+>/g,'').slice(0, 130) + (content.length > 130 ? '…' : ''),
-    content: safeMarkup(html),
-    parent_post_id: parentId ? Number(parentId) : null,
-  };
-  if (editId) payload.updated_at = new Date().toISOString();
-
   let sbError, sbData;
+  let uploadedPdfPath = null;
+  let pdfPath = existingPdfPath || null;
 
   try {
+    if (pendingPdfFile) {
+      btn.textContent = 'Uploading PDF…';
+      uploadedPdfPath = await uploadPendingPdf();
+      pdfPath = uploadedPdfPath;
+    }
+    const payload = {
+      title,
+      slug,
+      category,
+      excerpt: excerpt || (content ? content.replace(/<[^>]+>/g,'').slice(0, 130) + (content.length > 130 ? '…' : '') : 'Original PDF document.'),
+      content: safeMarkup(html),
+      parent_post_id: parentId ? Number(parentId) : null,
+    };
+    // Keep normal posts compatible until the one-time PDF migration is run.
+    if (pdfPath) payload.source_pdf_path = pdfPath;
+    if (editId) payload.updated_at = new Date().toISOString();
     if (editId) {
       const res = await sb.from('posts').update(payload).eq('id', editId).select();
       sbError = res.error; sbData = res.data;
@@ -1100,6 +1082,7 @@ document.getElementById('publishBtn').addEventListener('click', async () => {
       sbError = res.error; sbData = res.data;
     }
   } catch(e) {
+    if (uploadedPdfPath) await sb.storage.from(PDF_BUCKET).remove([uploadedPdfPath]);
     sbError = { message: e.message };
   }
 
@@ -1110,6 +1093,9 @@ document.getElementById('publishBtn').addEventListener('click', async () => {
     console.error('Supabase error:', sbError);
     setStatus('Error: ' + (sbError.message || JSON.stringify(sbError)), 'err');
   } else {
+    if (uploadedPdfPath && existingPdfPath && existingPdfPath !== uploadedPdfPath) {
+      sb.storage.from(PDF_BUCKET).remove([existingPdfPath]);
+    }
     console.log('Published:', sbData);
     setStatus(editId ? '✓ Post updated' : '✓ Published! Reload to see it.', 'ok');
     clearForm();
@@ -1182,6 +1168,9 @@ async function editPost(id) {
   document.getElementById('fEditId').value   = id;
   document.getElementById('fParentId').value = data.parent_post_id || '';
   document.getElementById('fSlug').value     = data.slug || '';
+  document.getElementById('fPdfPath').value  = data.source_pdf_path || '';
+  document.getElementById('pdfImport').value = '';
+  pendingPdfFile = null;
   document.getElementById('writeTitle').textContent = 'Edit post';
   document.getElementById('publishBtn').textContent = 'Save changes →';
 
@@ -1208,6 +1197,9 @@ async function addThreadUpdate(id) {
   document.getElementById('fEditId').value   = '';
   document.getElementById('fParentId').value = id;
   document.getElementById('fSlug').value     = '';
+  document.getElementById('fPdfPath').value  = '';
+  document.getElementById('pdfImport').value = '';
+  pendingPdfFile = null;
   document.getElementById('writeTitle').textContent = 'New thread update';
   document.getElementById('publishBtn').textContent = 'Publish thread update →';
 
@@ -1238,9 +1230,11 @@ function viewPost(slug) {
 document.getElementById('clearBtn').addEventListener('click', clearForm);
 
 function clearForm() {
-  ['fTitle','fExcerpt','fEditId','fParentId','fSlug'].forEach(id => {
+  ['fTitle','fExcerpt','fEditId','fParentId','fSlug','fPdfPath'].forEach(id => {
     document.getElementById(id).value = '';
   });
+  document.getElementById('pdfImport').value = '';
+  pendingPdfFile = null;
   setEditorContent('');
   sourceEditor.classList.remove('show');
   document.getElementById('fCategory').value      = 'personal';

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-E3SGznmg9hGQlAHieSEX2QkW34cxpLDVFVIYXU1roFQ=' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-/isSHSHFzEW1HdE9I2jVdAvXFHGdMJ1I/k5ozLsjmCs=' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co; frame-src https://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self';">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Blog — Akshat Kothari</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -75,6 +75,12 @@
       color: var(--gray-400); text-align: center; line-height: 1.5;
     }
     .post-body span[style*="font-family"] { line-height: inherit; }
+
+    .post-pdf { margin-top: 2.25rem; overflow: hidden; border: 1px solid var(--gray-100); border-radius: var(--radius-md); background: var(--gray-50); }
+    .post-pdf-bar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.85rem 1rem; font-family: var(--mono); font-size: 11px; color: var(--gray-600); }
+    .post-pdf-bar a { color: var(--accent); text-decoration: none; white-space: nowrap; }
+    .post-pdf-bar a:hover { text-decoration: underline; }
+    .post-pdf-viewer { display: block; width: 100%; height: min(80vh, 980px); min-height: 680px; border: 0; background: white; }
 
     /* ── IMG GRID (photo / chart grids from Word docs) ── */
     .post-body .img-grid {
@@ -212,6 +218,7 @@
 
     @media (max-width: 500px) {
       .comment-form-row { grid-template-columns: 1fr; }
+      .post-pdf-viewer { height: 72vh; min-height: 520px; }
     }
   </style>
 <script src="../js/vendor/purify.min.js"></script>
@@ -254,6 +261,7 @@
 <script src="../js/supabase-config.js"></script>
 <script>
 const sb = getSupabase();
+const PDF_BUCKET = 'portfolio-pdfs';
 
 // mobile nav
 const toggle = document.getElementById('navToggle');
@@ -339,6 +347,14 @@ function renderPost(wrap, post) {
   const bodyHTML = post.content || post.html
     ? (post.content || post.html)
     : (post.body || '').split(/\n{2,}/).filter(Boolean).map(p => `<p>${p.replace(/\n/g,'<br>')}</p>`).join('');
+  const pdfUrl = post.source_pdf_path && sb
+    ? sb.storage.from(PDF_BUCKET).getPublicUrl(post.source_pdf_path).data.publicUrl
+    : '';
+  const pdfViewer = pdfUrl ? `
+    <section class="post-pdf" aria-label="Original PDF document">
+      <div class="post-pdf-bar"><span>Original document</span><a href="${escapeText(pdfUrl)}" target="_blank" rel="noopener noreferrer">Open PDF ↗</a></div>
+      <iframe class="post-pdf-viewer" src="${escapeText(pdfUrl)}#view=FitH" title="PDF: ${escapeText(post.title)}" referrerpolicy="no-referrer"></iframe>
+    </section>` : '';
 
   document.title = `${post.title} — Akshat Kothari`;
 
@@ -352,6 +368,7 @@ function renderPost(wrap, post) {
     <div class="post-divider"></div>
     <aside class="post-thread" id="postThread" style="display:none;"></aside>
     <div class="post-body">${safeMarkup(bodyHTML)}</div>
+    ${pdfViewer}
 
     <!-- LIKES -->
     <div class="post-engagement" id="engagementBar">

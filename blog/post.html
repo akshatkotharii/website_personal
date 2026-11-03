@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-9HLMvQDX5MDryX2NkULQxHPVCavTYy3GrH7RoFI7yBc=' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co; frame-src https://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-pSzdr2wXPpSofOTu9Vpf2FacedrrpnyY6Nc50jPdkqA=' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co; frame-src https://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self';">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Blog — Akshat Kothari</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -102,6 +102,25 @@
     .alias-boundary { margin: 2.5rem 0; padding: 1.4rem 1.5rem; border-left: 3px solid #c68a62; background: #fbf1e8; color: #4b413c; }
     .alias-boundary strong { display: block; margin-bottom: .45rem; color: #3b2e27; font-family: var(--serif); font-size: 22px; font-weight: 400; }
     .alias-boundary p { margin: 0 !important; font-size: 15px; line-height: 1.6; }
+    .cef-hero { position:relative; overflow:hidden; margin:0 0 2.5rem; padding:clamp(1.5rem,5vw,2.75rem); border-radius:var(--radius-md); color:#f7fbf8; background:#0b2d43; }
+    .cef-hero::before { content:''; position:absolute; width:clamp(150px,28vw,280px); aspect-ratio:1; right:-4%; top:8%; border:clamp(18px,4vw,42px) solid #008f83; border-radius:50%; box-shadow:inset 0 0 0 clamp(16px,3vw,32px) #d7e77a, inset 0 0 0 clamp(35px,7vw,72px) #0b2d43; opacity:.9; }
+    .cef-hero > * { position:relative; z-index:1; }
+    .cef-overline { margin:0 0 1rem!important; color:#d7e77a; font:11px var(--mono); letter-spacing:.13em; text-transform:uppercase; }
+    .post-body .cef-title { max-width:13ch; margin:0!important; color:#fff!important; font:clamp(38px,8vw,68px)/.96 var(--serif)!important; letter-spacing:-.045em; }
+    .cef-lede { max-width:34rem; margin:1rem 0 0!important; color:#d8e6e8; font-size:clamp(16px,2.8vw,20px); line-height:1.5; }
+    .cef-link { display:inline-flex; margin-top:1.5rem; padding-bottom:4px; border-bottom:1px solid #d7e77a; color:#fff!important; font:12px var(--mono); text-decoration:none!important; }
+    .cef-link:hover { color:#d7e77a!important; }
+    .cef-belief { margin:2.5rem 0!important; padding:clamp(1.3rem,4vw,2rem); border-radius:var(--radius-md); color:#fff; background:#008f83; }
+    .cef-belief small { display:block; margin-bottom:.8rem; color:#e2ef8c; font:11px var(--mono); letter-spacing:.1em; text-transform:uppercase; }
+    .cef-belief strong { display:block; color:#fff!important; font:clamp(21px,4vw,31px)/1.25 var(--serif); font-weight:400; }
+    .cef-steps { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1px; margin:1.5rem 0 2.5rem; overflow:hidden; border:1px solid #dce5e1; border-radius:var(--radius-md); background:#dce5e1; }
+    .cef-step { min-height:145px; padding:1.15rem; background:#fbfcf8; }
+    .cef-step b { display:block; margin-bottom:1.1rem; color:#008f83; font:11px var(--mono); letter-spacing:.1em; }
+    .cef-step strong { display:block; margin-bottom:.35rem; color:#0b2d43!important; font:22px/1.1 var(--serif); font-weight:400; }
+    .cef-step span { display:block; color:var(--gray-600); font-size:13px; line-height:1.5; }
+    .cef-note { margin:2rem 0; padding:1.2rem 1.35rem; border-left:3px solid #d1df74; background:#eff5e6; color:#233b41; font-size:15px; line-height:1.65; }
+    .cef-note strong { color:#0b2d43!important; }
+    @media(max-width:540px){.cef-steps{grid-template-columns:1fr}.cef-step{min-height:0}.cef-hero::before{right:-18%;top:3%;opacity:.55}.post-body .cef-title{max-width:10ch}}
     @media (max-width: 540px) {
       .alias-flow { grid-template-columns: 1fr; }
       .alias-step { min-height: 0; }
@@ -327,7 +346,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!slug) { showNotFound(wrap); return; }
 
   let post = null;
-  const staticSlugs = new Set(['why-i-started-this-site', 'five-days-in-singapore', 'aliasearch-research-before-reachout']);
+  const staticSlugs = new Set(['why-i-started-this-site', 'five-days-in-singapore', 'aliasearch-research-before-reachout', 'building-a-place-for-clean-energy-research']);
 
   // Repo-backed posts should not wait for a failed database lookup first.
   if (staticSlugs.has(slug)) {

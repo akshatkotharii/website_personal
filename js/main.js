@@ -160,7 +160,7 @@ async function fetchPosts(limit = 4, offset = 0) {
 }
 
 async function loadStaticPosts() {
-  const slugs = ['aliasearch-research-before-reachout', 'why-i-started-this-site'];
+  const slugs = ['building-a-place-for-clean-energy-research', 'aliasearch-research-before-reachout', 'why-i-started-this-site'];
   const posts = [];
   for (const slug of slugs) {
     try {

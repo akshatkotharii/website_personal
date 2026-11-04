@@ -11,6 +11,14 @@
   let index = 0;
   let touchStart = null;
   let autoAdvance;
+  const loadCardImage = (card, priority = 'low') => {
+    const image = card?.querySelector('.launch-photo img');
+    if (!image) return;
+    image.fetchPriority = priority;
+    if (image.dataset.launchSrc && !image.hasAttribute('src')) {
+      image.src = image.dataset.launchSrc;
+    }
+  };
   const stopAutoAdvance = () => window.clearTimeout(autoAdvance);
   const scheduleAutoAdvance = () => {
     stopAutoAdvance();
@@ -19,11 +27,18 @@
   const setCard = next => {
     index = Math.max(0, Math.min(next, cards.length - 1));
     launch.dataset.stage = String(index + 1);
+    loadCardImage(cards[index], 'high');
     cards.forEach((card, cardIndex) => {
       const active = cardIndex === index;
       card.classList.toggle('is-active', active);
       card.tabIndex = active ? 0 : -1;
     });
+    const nextCard = cards[index + 1];
+    if (nextCard) {
+      const preload = () => loadCardImage(nextCard, 'low');
+      if ('requestIdleCallback' in window) window.requestIdleCallback(preload, { timeout: 1200 });
+      else window.setTimeout(preload, 100);
+    }
     scheduleAutoAdvance();
   };
   const finish = () => {

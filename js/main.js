@@ -107,12 +107,14 @@ async function loadBlog() {
   if (!grid) return;
 
   showSkeleton(featured, grid);
+  const staticPostsPromise = loadStaticPosts();
 
-  // Keep admin-starred posts first; fill remaining places with recent static stories.
-  let posts = await fetchFeaturedPosts();
+  // One newest-first query avoids waiting for the featured lookup before loading recent posts.
+  const recentPosts = await fetchPosts(12);
+  let posts = recentPosts.filter(post => post.featured).slice(0, 4);
   const hasStarredPosts = posts.length > 0;
-  if (!hasStarredPosts) posts = await fetchPosts(4);
-  const staticPosts = await loadStaticPosts();
+  if (!hasStarredPosts) posts = recentPosts.slice(0, 4);
+  const staticPosts = await staticPostsPromise;
   const additions = staticPosts.filter(item => !posts.some(post => post.slug === item.slug));
   posts = hasStarredPosts
     ? [...posts, ...additions].slice(0, 4)
@@ -132,21 +134,6 @@ async function loadBlog() {
 }
 
 /* ── FETCH POSTS ─────────────────────────────────────────── */
-async function fetchFeaturedPosts() {
-  const sb = getSupabase();
-  if (!sb) return [];
-  try {
-    const { data, error } = await sb
-      .from('posts')
-      .select('id, title, slug, category, excerpt, created_at, featured')
-      .eq('featured', true)
-      .order('created_at', { ascending: false })
-      .limit(4);
-    if (!error && data) return data;
-  } catch(e) { console.warn('Featured fetch failed:', e); }
-  return [];
-}
-
 async function fetchPosts(limit = 4, offset = 0) {
   const sb = getSupabase();
 
@@ -155,7 +142,8 @@ async function fetchPosts(limit = 4, offset = 0) {
     try {
       const { data, error } = await sb
         .from('posts')
-        .select('id, title, slug, category, excerpt, created_at')
+        .select('id, title, slug, category, excerpt, created_at, featured')
+        .order('featured', { ascending: false })
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1);
       if (!error && data) return data;
@@ -163,20 +151,17 @@ async function fetchPosts(limit = 4, offset = 0) {
     } catch(e) { console.warn('Supabase fetch failed:', e); }
   }
 
-  // Fallback: static JSON files
-  return loadStaticPosts();
+  return [];
 }
 
 async function loadStaticPosts() {
   const slugs = ['smart-energy-nudging', 'outreach-brain', 'spinsync-shared-laundry', 'building-a-place-for-clean-energy-research', 'aliasearch-research-before-reachout', 'why-i-started-this-site'];
-  const posts = [];
-  for (const slug of slugs) {
+  return (await Promise.all(slugs.map(async slug => {
     try {
       const r = await fetch(`blog/posts/${slug}.json`);
-      if (r.ok) posts.push(await r.json());
-    } catch(_) {}
-  }
-  return posts;
+      return r.ok ? await r.json() : null;
+    } catch(_) { return null; }
+  }))).filter(Boolean);
 }
 
 /* ── EXPERIENCE LOADER ───────────────────────────────────── */

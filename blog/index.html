@@ -3,12 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-qL4DWoNWtMor+8Ncc0QwvOygq712MVrEtshdZ0PQyGU=' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self';">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Blog — Akshat Kothari</title>
   <meta name="description" content="Writing on tech, research, startups, and daily life by Akshat Kothari.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" href="https://fonts.gstatic.com/s/instrumentserif/v5/jizBRFtNs2ka5fXjeivQ4LroWlx-6zUTjg.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7.woff2" as="font" type="font/woff2" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
   <style>
@@ -69,8 +71,8 @@
       .blog-all-title { font-size: 17px; }
     }
   </style>
-<script src="../js/vendor/purify.min.js"></script>
-<script src="../js/safety.js"></script>
+<script src="../js/vendor/purify.min.js" defer></script>
+<script src="../js/safety.js" defer></script>
 </head>
 <body>
 <nav>
@@ -117,101 +119,8 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="../js/supabase-config.js"></script>
-<script>
-const PER_PAGE = 10;
-let page = 0, totalCount = 0, activeFilter = 'all';
-const STATIC_POST_SLUGS = ['smart-energy-nudging','outreach-brain','spinsync-shared-laundry','building-a-place-for-clean-energy-research','aliasearch-research-before-reachout','why-i-started-this-site','five-days-in-singapore'];
-
-// mobile nav
-const toggle = document.getElementById('navToggle');
-const drawer = document.getElementById('navDrawer');
-if (toggle) toggle.addEventListener('click', () => { const o = drawer.classList.toggle('open'); toggle.classList.toggle('open', o); });
-drawer && drawer.querySelectorAll('a').forEach(a => a.addEventListener('click', () => { drawer.classList.remove('open'); toggle.classList.remove('open'); }));
-
-// filters
-document.getElementById('blogFilters').addEventListener('click', e => {
-  const pill = e.target.closest('.filter-pill');
-  if (!pill) return;
-  document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
-  pill.classList.add('active');
-  activeFilter = pill.dataset.cat;
-  page = 0;
-  loadPosts();
-});
-
-// pagination
-document.getElementById('prevBtn').addEventListener('click', () => { page--; loadPosts(); });
-document.getElementById('nextBtn').addEventListener('click', () => { page++; loadPosts(); });
-
-async function loadPosts() {
-  const list = document.getElementById('blogAllList');
-  const pag  = document.getElementById('blogPagination');
-
-  list.innerHTML = [1,2,3,4].map(() => `
-    <div class="blog-skel-row">
-      <div><div class="skel" style="width:48px;height:12px;margin-bottom:6px;"></div><div class="skel" style="width:32px;height:12px;"></div></div>
-      <div><div class="skel" style="width:75%;height:20px;margin-bottom:10px;"></div><div class="skel" style="width:100%;height:13px;margin-bottom:5px;"></div><div class="skel" style="width:60%;height:13px;"></div></div>
-    </div>`).join('');
-
-  const sb = getSupabase();
-  let databasePosts = [];
-  if (sb) {
-    try {
-      const { data, error } = await sb.from('posts')
-        .select('id,title,slug,category,excerpt,created_at')
-        .order('created_at', { ascending: false })
-        .range(0, 999);
-      if (!error) databasePosts = data || [];
-      else console.warn('Blog list query failed:', error);
-    } catch(e) { console.warn('Blog list query failed:', e); }
-  }
-
-  // Merge code-published stories with admin posts before paging, so no entries vanish between pages.
-  const staticPosts = [];
-  for (const slug of STATIC_POST_SLUGS) {
-    try {
-      const response = await fetch(`posts/${slug}.json`);
-      if (response.ok) staticPosts.push(await response.json());
-    } catch(_) {}
-  }
-  const knownSlugs = new Set(databasePosts.map(post => post.slug));
-  const combined = [...databasePosts, ...staticPosts.filter(post => !knownSlugs.has(post.slug))];
-  const filtered = combined.filter(post => activeFilter === 'all' || (post.category || post.cat) === activeFilter);
-  filtered.sort((a, b) => new Date(b.created_at || b.date) - new Date(a.created_at || a.date));
-  totalCount = filtered.length;
-  const posts = filtered.slice(page * PER_PAGE, (page + 1) * PER_PAGE);
-
-  if (!posts.length) {
-    list.innerHTML = `<div class="blog-notice">No posts${activeFilter!=='all'?' in this category':''} yet — <a href="../admin/index.html">write one</a>.</div>`;
-    pag.style.display = 'none';
-    return;
-  }
-
-  list.innerHTML = '';
-  posts.forEach(p => {
-    const d = new Date(p.created_at || p.date);
-    const a = document.createElement('a');
-    a.href = `post.html?slug=${encodeURIComponent(p.slug)}`;
-    a.className = 'blog-all-row';
-    a.innerHTML = `
-      <div class="blog-all-date">${d.toLocaleString('en',{month:'short'})} ${d.getDate()}<br>${d.getFullYear()}</div>
-      <div><div class="blog-all-title">${escapeText(p.title)}</div><div class="blog-all-excerpt">${escapeText(p.excerpt||'')}</div></div>
-      <div class="blog-all-tag">${escapeText(p.category||p.cat||'personal')}</div>`;
-    list.appendChild(a);
-  });
-
-  const totalPages = Math.ceil(totalCount / PER_PAGE);
-  if (totalPages > 1) {
-    pag.style.display = 'flex';
-    document.getElementById('prevBtn').disabled = page === 0;
-    document.getElementById('nextBtn').disabled = page >= totalPages - 1;
-    document.getElementById('pageInfo').textContent = `Page ${page+1} of ${totalPages}`;
-  } else { pag.style.display = 'none'; }
-}
-
-loadPosts();
-</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+<script src="../js/supabase-config.js" defer></script>
+<script src="../js/blog-index.js" defer></script>
 </body>
 </html>

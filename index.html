@@ -9,6 +9,8 @@
   <meta name="description" content="Second-year engineering student at Plaksha University. Researching clean energy, building IoT systems, learning AI/ML.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" href="https://fonts.gstatic.com/s/instrumentserif/v5/jizBRFtNs2ka5fXjeivQ4LroWlx-6zUTjg.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7.woff2" as="font" type="font/woff2" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Inter:wght@300;400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&amp;display=swap" rel="stylesheet">
@@ -16,8 +18,8 @@
   <link rel="stylesheet" href="css/notebook.css">
   <link rel="stylesheet" href="css/experience-refresh.css">
   <link rel="stylesheet" href="css/margins-preview.css">
-<script src="js/vendor/purify.min.js"></script>
-<script src="js/safety.js"></script>
+<script src="js/vendor/purify.min.js" defer></script>
+<script src="js/safety.js" defer></script>
 </head>
 <body>
 
@@ -27,28 +29,28 @@
   <div class="site-launch-stage" aria-live="polite">
     <button class="launch-card is-active" type="button" data-launch-card data-stage="1" aria-label="First of four. Continue.">
       <span class="launch-paper">
-        <span class="launch-photo launch-photo-yellow"><img src="images/launch/01-yellow.jpg?v=2" alt="Akshat walking through Gardens by the Bay"></span>
+        <span class="launch-photo launch-photo-yellow"><img src="images/launch/01-yellow.jpg?v=2" width="697" height="1280" alt="Akshat walking through Gardens by the Bay" fetchpriority="high" decoding="async"></span>
         <span class="launch-note">exploring.</span>
         <span class="launch-count" aria-hidden="true">01 / 04</span>
       </span>
     </button>
     <button class="launch-card" type="button" data-launch-card data-stage="2" aria-label="Second of four. Continue.">
       <span class="launch-paper">
-        <span class="launch-photo launch-photo-red"><img src="images/launch/02-red.jpg" alt="Akshat as a child holding a phone"></span>
+        <span class="launch-photo launch-photo-red"><img data-launch-src="images/launch/02-red.jpg" width="604" height="453" alt="Akshat as a child holding a phone" fetchpriority="low" decoding="async"></span>
         <span class="launch-note">tinkering.</span>
         <span class="launch-count" aria-hidden="true">02 / 04</span>
       </span>
     </button>
     <button class="launch-card" type="button" data-launch-card data-stage="3" aria-label="Third of four. Continue.">
       <span class="launch-paper">
-        <span class="launch-photo launch-photo-mono"><img src="images/launch/03-siblings.jpg?v=2" alt="Akshat speaking at Plaksha"></span>
+        <span class="launch-photo launch-photo-mono"><img data-launch-src="images/launch/03-siblings.webp" width="1600" height="1067" alt="Akshat speaking at Plaksha" fetchpriority="low" decoding="async"></span>
         <span class="launch-note">thinking.</span>
         <span class="launch-count" aria-hidden="true">03 / 04</span>
       </span>
     </button>
     <button class="launch-card" type="button" data-launch-card data-stage="4" aria-label="Last of four. Enter Akshat’s site.">
       <span class="launch-paper">
-        <span class="launch-photo launch-photo-now"><img src="images/akshat_photo.jpg?v=2" alt="Akshat Kothari"></span>
+        <span class="launch-photo launch-photo-now"><img data-launch-src="images/akshat_photo.jpg" width="400" height="400" alt="Akshat Kothari" fetchpriority="low" decoding="async"></span>
         <span class="launch-note">Always exploring,<br>tinkering and thinking.</span>
         <span class="launch-count" aria-hidden="true">04 / 04</span>
       </span>
@@ -148,7 +150,7 @@
       <!-- RIGHT: PHOTO -->
       <div class="hero-photo-wrap">
         <div class="hero-photo">
-          <img src="images/akshat_photo.jpg" alt="Akshat Kothari" loading="eager">
+          <img src="images/akshat_photo.jpg" width="400" height="400" alt="Akshat Kothari" loading="eager" fetchpriority="high" decoding="async">
         </div>
       </div>
 
@@ -303,13 +305,13 @@
 
 <!-- blog modal removed — use admin/index.html to post -->
 
-<script src="js/launch-sequence.js?v=10"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/supabase-config.js"></script>
-<script src="js/main.js?v=20261015"></script>
-<script src="js/notebook-data.js"></script>
-<script src="js/project-art.js?v=20261015"></script>
-<script src="js/notebook.js?v=20261015"></script>
-<script src="js/margins.js"></script>
+<script src="js/launch-sequence.js?v=10" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+<script src="js/supabase-config.js" defer></script>
+<script src="js/main.js?v=20261015" defer></script>
+<script src="js/notebook-data.js" defer></script>
+<script src="js/project-art.js?v=20261015" defer></script>
+<script src="js/notebook.js?v=20261015" defer></script>
+<script src="js/margins.js" defer></script>
 </body>
 </html>

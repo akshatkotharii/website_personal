@@ -1,55 +1,58 @@
 <section class="story-hero energy-hero">
   <p class="story-kicker">Research in progress · IVCCE, Plaksha University</p>
   <h2 class="story-title">Can energy data become useful at the right moment?</h2>
-  <p class="story-lede">I am working on a WhatsApp energy coach that turns smart-socket readings into clear explanations and optional, timely suggestions. The research is about whether that helps people understand and act—not about assuming that a message saves energy.</p>
+  <p class="story-lede">I am building a WhatsApp energy coach around smart-socket readings. The research question is whether a clear explanation or optional suggestion can help people understand their appliance use. A message is not evidence of energy saved.</p>
 </section>
 
-<p>This project matters to me because energy use is part of everyday life, but the information behind it is often hard to act on. A smart socket can measure electricity use. A chart can show a pattern. Neither, by itself, tells someone what the pattern means or what they might want to do next.</p>
-<p>At the Indorama Ventures Center for Clean Energy (IVCCE) at Plaksha University, I have been building a privacy-conscious system around that gap. The research question is deliberately two-part: can people understand appliance data more easily, and what happens to measured energy use? Those are different outcomes. We need to measure both.</p>
+<p>A smart socket can measure electricity use. A chart can show a pattern. But neither automatically answers the questions a person might have: what is this appliance doing, is this reading reliable, and is there anything I want to change?</p>
+<p>That gap is why I joined this work at the Indorama Ventures Center for Clean Energy (IVCCE) at Plaksha University. The project combines software, energy data and behaviour research. I care about the technical system, but the real question is human: can information arrive in a form that helps someone make sense of it without taking control away from them?</p>
+<p>I have learned to keep two possible outcomes separate. One is whether people understand and use the coach. The other is whether measured energy use changes. Engagement does not prove savings, and an energy difference would need careful analysis before we could explain why it happened.</p>
 
-<h2>The idea, in four steps</h2>
-<div class="energy-route" aria-label="From appliance readings to an evaluated research question">
-  <div class="energy-node"><b>01 / MEASURE</b><strong>Read the socket</strong><span>Timestamped power readings from an appliance.</span></div>
-  <div class="energy-node"><b>02 / CHECK</b><strong>Check the data</strong><span>Confirm access, coverage and reliability.</span></div>
+<h2>Designing the path from reading to response</h2>
+<p>The system receives timestamped readings from a smart socket, checks the record for coverage and reliability, and calculates usage before preparing an explanation or an optional suggestion. Each step can fail in a different way. A device may be mapped incorrectly. Data may be missing. A pattern may look unusual without showing why it occurred.</p>
+<div class="energy-route" aria-label="From appliance readings to a research question">
+  <div class="energy-node"><b>01 / MEASURE</b><strong>Read the socket</strong><span>Timestamped power readings from a selected appliance.</span></div>
+  <div class="energy-node"><b>02 / CHECK</b><strong>Test reliability</strong><span>Confirm access, device mapping and data coverage.</span></div>
   <div class="energy-node"><b>03 / EXPLAIN</b><strong>Use plain language</strong><span>Answer a question or offer an optional suggestion.</span></div>
-  <div class="energy-node"><b>04 / EVALUATE</b><strong>Look for evidence</strong><span>Study engagement and energy outcomes separately.</span></div>
+  <div class="energy-node"><b>04 / EVALUATE</b><strong>Separate outcomes</strong><span>Study understanding and energy use independently.</span></div>
 </div>
 
-<h2>How the project changed as I tested it</h2>
-<p>My first version gave an AI model a broad role: understand a question, interpret the data and suggest an answer. Testing made me uncomfortable with that design. Energy totals, user permissions and study claims need to be repeatable. A fluent answer is not useful if its calculation or source is wrong.</p>
-<p>So I narrowed the model’s job. Deterministic code now handles who can access which device, checks the readings, calculates energy use and decides whether a reminder is eligible. Local language models help with open-ended wording; local speech recognition turns a voice note into text. The model does not decide permissions, calculate energy, or decide whether a household should receive a nudge.</p>
-
-<div class="energy-layers" aria-label="Responsibilities in the system">
-  <div class="energy-layer"><b>Measured and checked</b><strong>Code owns the facts</strong><p>It scopes readings to an authorised device, checks data quality and computes energy in kWh. It does not guess a household’s electricity cost without a verified tariff.</p></div>
-  <div class="energy-layer"><b>Flexible but bounded</b><strong>Models help with language</strong><p>Local models can help interpret open questions or transcribe voice. They sit behind the same permission and calculation checks.</p></div>
+<h2>Give each part a job it can do well</h2>
+<p>Early versions gave an AI model too much responsibility. It could interpret the data and shape an answer, which made the system feel flexible but also made the important decisions harder to reproduce. Energy calculations, access permissions and research eligibility should not depend on a model producing a plausible sentence.</p>
+<p>So I moved those responsibilities into deterministic code. It checks which device a person is allowed to access, validates the readings, calculates energy in kilowatt-hours and decides whether a reminder is eligible. Models can help with language, such as interpreting an open-ended question or preparing a transcription. They do not grant access, calculate energy or decide that a household should receive a nudge.</p>
+<div class="energy-layers" aria-label="System responsibilities">
+  <div class="energy-layer"><b>Measured and checked</b><strong>Code owns the facts</strong><p>Authorised device scope, data quality checks, energy totals and eligibility rules. No guessed electricity cost when a verified tariff is not available.</p></div>
+  <div class="energy-layer"><b>Flexible but bounded</b><strong>Models help with language</strong><p>Open questions and voice transcription can use language tools, behind the same access and calculation checks.</p></div>
 </div>
+<p>This division also helps when something goes wrong. If a daily total looks strange, we can inspect the readings and calculation. If an answer sounds wrong, we can review the language step without changing how energy was computed.</p>
 
-<p>WhatsApp is the interaction layer because it can support questions, charts, voice notes, reminders and feedback without asking someone to keep opening a separate dashboard. That may make the system easier to approach; it does not guarantee that anyone will engage with it.</p>
-<p>A participant can ask about current or past appliance use, request a chart, adjust reminder timing, set quiet hours, pause, opt out or withdraw consent. Feedback such as “not useful” or “less often” should change how the system responds. A suggestion is optional, and the person remains in control.</p>
+<h2>WhatsApp is a choice of setting, not proof of impact</h2>
+<p>The first prototype used Discord. It handled text, model replies and voice commands, but it did not match the setting we wanted to study. We moved the interaction to WhatsApp to test the coach in a more familiar kind of conversation. That is a design choice, not evidence that households prefer it. People can ask about current or past use, request a chart, send a voice note, set reminder preferences or choose quiet hours. They can pause, opt out or withdraw from research.</p>
+<p>Those options matter because a helpful prompt for one person may feel intrusive to another. A reminder should be optional and controlled by the person receiving it. The system should also avoid turning a pattern into a diagnosis. A reading alone cannot prove that an appliance is broken or wasting energy.</p>
 
-<h2>Privacy is part of the research method</h2>
-<p>To study behaviour, it can be tempting to collect every conversation. I do not want the project to work that way. The current design separates permission to operate the coach, permission to analyse research outcomes, and any future permission to improve shared language resources.</p>
+<h2>Privacy shapes what the system keeps</h2>
+<p>Collecting every conversation might seem useful for improving a coach, but it would also retain details the research does not need. The current design separates permission to operate the coach, permission to analyse research outcomes and any future permission to improve shared language resources.</p>
 <div class="story-flow" aria-label="Research data boundaries">
-  <div class="story-flow-card"><b>KEEP</b><strong>What is needed</strong><span>Preferences, consent state, delivery labels, data quality and defined study outcomes.</span></div>
-  <div class="story-flow-card"><b>LEAVE OUT</b><strong>Private conversation</strong><span>Raw messages, voice audio, names, phone numbers, credentials and private socket identifiers.</span></div>
-  <div class="story-flow-card"><b>SEPARATE</b><strong>Personal from shared</strong><span>Any future learning examples would need consent, redaction and human review.</span></div>
-  <div class="story-flow-card"><b>ALLOW</b><strong>Pause or leave</strong><span>People can change preferences, pause reminders or withdraw from the research.</span></div>
+  <div class="story-flow-card"><b>KEEP</b><strong>Study essentials</strong><span>Consent state, preferences, delivery labels and defined outcomes.</span></div>
+  <div class="story-flow-card"><b>EXCLUDE</b><strong>Private conversations</strong><span>Raw message text, voice audio, names, phone numbers and credentials.</span></div>
+  <div class="story-flow-card"><b>SEPARATE</b><strong>Personal from shared</strong><span>Future learning examples need consent, redaction and human review.</span></div>
+  <div class="story-flow-card"><b>RESPECT</b><strong>Pause or leave</strong><span>People can change preferences or withdraw from the study.</span></div>
 </div>
+<p>I want those boundaries to be part of how the product works, not promises added after the system is built. The same is true of data quality: missing periods should be visible, not quietly filled in to make a chart look complete.</p>
 
-<details class="story-details"><summary>Why not train on every chat?</summary><div><p>Raw conversations can include private details, mistaken assumptions and feedback that has not been reviewed. The project’s current direction is to begin with fixed, reviewed examples and only consider shared learning from consented, redacted, quality-checked material.</p></div></details>
+<h2>Software checks are not household evidence</h2>
+<p>The system has been exercised through automated tests and local dry-runs for calculations, permissions, preferences, charts, voice handling and message paths. Those checks help find software defects. They do not tell me whether households will use the coach, whether messages feel timely, or whether anyone changes an energy habit.</p>
+<p>Our planned Mumbai installation targeted smart sockets on ten geysers. The installation attempt did not succeed. No participant, engagement or energy result came from it. That was a difficult but useful boundary: a technically functioning bot is not the same as research working in someone's home.</p>
+<p>Some household-facing details still need careful handling too. Earlier aggregate records were incomplete, so daily and monthly answers now need to be reconstructed from reliable minute-level readings. If a day does not meet the data-quality threshold, the system should say so rather than inventing a complete picture. The same rule applies to cost: without a verified tariff, the coach should not turn usage into a made-up bill estimate.</p>
 
-<h2>What has been tested—and what has not</h2>
-<p>The software has been checked through automated tests and local dry-runs: data calculations, access boundaries, preferences, charts, voice handling and message paths. A successful check shows that a defined software behaviour worked under its test conditions. It does not show that a household adopted the coach or used less energy.</p>
-<p>Our planned Mumbai installation on ten geysers did not succeed. No household research, engagement result or energy result came from that attempt. I had to separate “the software works in a controlled check” from “the research has worked in people’s homes.” That distinction changed how I describe the project.</p>
-
-<h2>The next milestone is field evidence</h2>
-<div class="energy-checkpoint" aria-label="Evidence gates before a field study">
-  <div><b>FIRST</b><strong>Install and calibrate</strong><span>Confirm hardware, appliance identity, time settings and reliable readings.</span></div>
-  <div><b>THEN</b><strong>Collect a baseline</strong><span>Use consented data and exclude incomplete periods instead of filling gaps.</span></div>
-  <div><b>AFTER REVIEW</b><strong>Run a limited study</strong><span>Begin only when the intervention, supervision and opt-out path are ready.</span></div>
+<h2>The next steps are gates, not a launch date</h2>
+<div class="energy-checkpoint" aria-label="Planned evidence gates before field intervention">
+  <div><b>FIRST</b><strong>Install and calibrate</strong><span>Confirm hardware, appliance mapping, time settings and reliable readings.</span></div>
+  <div><b>THEN</b><strong>Establish a baseline</strong><span>Collect consented data and exclude incomplete periods.</span></div>
+  <div><b>AFTER REVIEW</b><strong>Consider a small study</strong><span>Agree on intervention rules, supervision and opt-out before starting.</span></div>
 </div>
-<p>The current roadmap includes a period of reliable personal baseline data and a silent observation stage before any automated anomaly message. Those are planning gates, not a final approved study protocol. A restart still needs successful installation, consent, calibration and a protocol agreed in advance.</p>
+<p>The current roadmap proposes 21 reliable baseline days, followed by a 30-day silent observation period in which possible anomalies are reviewed without sending automated messages. A limited opt-out-capable intervention could follow only if installation, false-positive checks and supervision are acceptable. These are planning stages, not an approved or completed study protocol.</p>
 
-<div class="story-callout"><strong>Where I am honest today:</strong> the project has a working technical foundation and a clearer research method. It has not yet shown adoption, energy savings, or causal impact in homes.</div>
+<div class="story-callout"><strong>Where I am today:</strong> the software and research method are clearer. The project has not yet shown household adoption, energy savings or causal impact.</div>
 
-<p>I like this project because it keeps pulling me between software and real life. A socket reading is only a signal. A useful system also needs consent, good explanations, careful timing, reliable evidence, and a person who can say “not now.” I want the eventual research to be judged by what households experience and what the data can actually support.</p>
+<p>I keep returning to the difference between a useful signal and a useful intervention. A socket gives us a measurement. It does not give us permission, context or a reason to interrupt someone. The research has to connect those pieces carefully, and be honest when the evidence is not ready.</p>

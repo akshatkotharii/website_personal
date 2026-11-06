@@ -22,6 +22,7 @@
     const p=projects.find(x=>x.id===active)||{id:'',title:'',kind:'Building',status:'planned',icon:'spark',animation:'breathe',pinned:true,sort_order:projects.length};
     const projectEntries=entries.filter(e=>e.project_id===p.id);
     const isLearning=p.kind==='Learning';
+    const isSkillCollection=p.id==='c855b879-8b70-4d05-8be0-8e31af5c5968';
     root.innerHTML=`<div class="nb-admin-header"><div><h2>Your open notebook</h2></div><button class="nb-secondary" id="nbNew">+ New chapter</button></div>
     <div class="nb-workspace"><div class="nb-project-list">${projects.map(x=>`<button type="button" data-edit-project="${esc(x.id)}" aria-pressed="${x.id===active}">${esc(x.title)}<small>${esc(x.status)}${x.pinned?' · on desk':''}</small></button>`).join('')||'<p class="nb-help">Add your first chapter.</p>'}</div>
     <div class="nb-editor"><form id="nbProjectForm">
@@ -37,7 +38,7 @@
       ${isLearning?input('progress','Learning days completed (0–30)',p.progress??0,'number'):''}</div></details>
       <div class="nb-actions"><button type="submit">Save chapter</button>${p.id?'<button type="button" id="nbRemove">Delete chapter</button>':''}</div>
     </form><div class="nb-message" id="nbMessage" role="status"></div>
-    ${p.id?`<details class="nb-log"><summary><span>Project updates</span></summary><div class="nb-details-body"><form id="nbEntryForm">${input('entry_title','Update title *')}${area('entry_body','What happened? *')}${input('entry_url','Read more link (optional)')}${isLearning?input('entry_day','Sprint day (1–30, optional)','','number'):''}<label class="nb-check"><input name="published" type="checkbox"> Publish on website</label><div class="nb-actions"><button type="submit">Save update</button><button type="button" id="nbResetEntry">Clear</button></div></form><div>${projectEntries.map(e=>`<div class="nb-entry-row"><span>${esc(e.title)}<small> · ${e.published?'public':'draft'} · ${new Date(e.created_at).toLocaleDateString('en-GB')}</small></span><span><button type="button" data-edit-entry="${e.id}">Edit</button> <button type="button" data-delete-entry="${e.id}">Delete</button></span></div>`).join('')||'<p class="nb-help">No updates yet.</p>'}</div></div></details>`:''}
+    ${p.id?`<details class="nb-log"><summary><span>${isSkillCollection?'Skills in this collection':'Project updates'}</span></summary><div class="nb-details-body"><form id="nbEntryForm">${input('entry_title',isSkillCollection?'Skill name *':'Update title *')}${area('entry_body',isSkillCollection?'What does it do, and why is it useful? *':'What happened? *')}${input('entry_url',isSkillCollection?'Repository or source link':'Read more link (optional)')}${isSkillCollection?artSelect('entry_scene','How should this skill open?',{'evidence-trail':'Evidence trail','performance-lab':'Performance lab','workflow-map':'Workflow map','field-guide':'Field guide'},'evidence-trail'):''}${isLearning?input('entry_day','Sprint day (1–30, optional)','','number'):''}<label class="nb-check"><input name="published" type="checkbox"> ${isSkillCollection?'Show this skill publicly':'Publish on website'}</label><div class="nb-actions"><button type="submit">Save ${isSkillCollection?'skill':'update'}</button><button type="button" id="nbResetEntry">Clear</button></div></form><div>${projectEntries.map(e=>`<div class="nb-entry-row"><span>${esc(e.title)}<small> · ${e.published?'public':'draft'}${isSkillCollection?` · ${esc(e.scene_type||'evidence-trail')}`:''} · ${new Date(e.created_at).toLocaleDateString('en-GB')}</small></span><span><button type="button" data-edit-entry="${e.id}">Edit</button> <button type="button" data-delete-entry="${e.id}">Delete</button></span></div>`).join('')||`<p class="nb-help">${isSkillCollection?'Add the first skill when it is ready to share.':'No updates yet.'}</p>`}</div></div></details>`:''}
     </div></div>
     <details class="nb-recap"><summary><span>A week in the notebook</span></summary><div class="nb-details-body"><div class="nb-actions"><label>Week starting <input type="date" id="nbWeek" value="${weekStart()}"></label><button type="button" id="nbGenerate">Generate recap</button></div><textarea id="nbRecap" aria-label="Weekly recap draft" placeholder="Weekly recap"></textarea><button type="button" class="nb-secondary" id="nbToBlog">Move to blog editor</button><p id="nbRecapStatus" class="nb-help" role="status"></p></div></details>`;
     root.querySelector('[name=title]').required=true;
@@ -64,6 +65,7 @@
     event.preventDefault();const form=event.target,button=form.querySelector('[type=submit]');button.disabled=true;
     try {
       const d=new FormData(form),payload={project_id:active,title:d.get('entry_title').trim(),body:d.get('entry_body').trim(),url:url(d.get('entry_url').trim()),published:d.has('published'),sprint_day:d.get('entry_day')?Number(d.get('entry_day')):null};
+      if(root.querySelector('[name=entry_scene]'))payload.scene_type=d.get('entry_scene');
       if(!payload.title||!payload.body)throw Error('Title and update are required.');
       const query=entryId?client.from('notebook_entries').update(payload).eq('id',entryId):client.from('notebook_entries').insert(payload);
       const {error}=await query;if(error)throw error;
@@ -80,7 +82,7 @@
         const {error}=await client.from('notebook_projects').delete().eq('id',active);if(error)throw error;
         active=null;await refresh();render();message('Chapter and updates deleted.');
       }
-      if(b.dataset.editEntry){const e=entries.find(x=>String(x.id)===b.dataset.editEntry);if(!e)return;entryId=e.id;const f=root.querySelector('#nbEntryForm');f.entry_title.value=e.title;f.entry_body.value=e.body;f.entry_url.value=e.url||'';f.published.checked=e.published;if(f.entry_day)f.entry_day.value=e.sprint_day||'';f.scrollIntoView({block:'center',behavior:'smooth'});}
+      if(b.dataset.editEntry){const e=entries.find(x=>String(x.id)===b.dataset.editEntry);if(!e)return;entryId=e.id;const f=root.querySelector('#nbEntryForm');f.entry_title.value=e.title;f.entry_body.value=e.body;f.entry_url.value=e.url||'';f.published.checked=e.published;if(f.entry_day)f.entry_day.value=e.sprint_day||'';if(f.entry_scene)f.entry_scene.value=e.scene_type||'evidence-trail';f.scrollIntoView({block:'center',behavior:'smooth'});}
       if(b.id==='nbResetEntry'){entryId=null;root.querySelector('#nbEntryForm').reset();}
       if(b.dataset.deleteEntry){if(!confirm('Delete this update permanently?'))return;const {error}=await client.from('notebook_entries').delete().eq('id',b.dataset.deleteEntry);if(error)throw error;entryId=null;await refresh();render();}
       if(b.id==='nbGenerate'){

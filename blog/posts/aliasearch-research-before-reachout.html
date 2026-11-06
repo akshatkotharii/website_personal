@@ -1,24 +1,32 @@
-<section class="alias-hero"><p class="alias-overline">A project note · customer research</p><h2 class="alias-name">Aliasearch</h2><p class="alias-hero-copy">A research skill for finding people or organisations worth speaking to—and showing why they might fit before drafting a message.</p><a class="alias-github" href="https://github.com/akshatkotharii/aliasearch" target="_blank" rel="noopener noreferrer">See the project on GitHub ↗</a></section>
+<section class="alias-hero"><p class="alias-overline">A project note · customer research</p><h2 class="alias-name">Aliasearch</h2><p class="alias-hero-copy">A research skill that checks whether a potential customer fits a real offer, shows the evidence, and leaves the decision to a person.</p><a class="alias-github" href="https://github.com/akshatkotharii/aliasearch" target="_blank" rel="noopener noreferrer">See the project on GitHub ↗</a></section>
 
-<p class="alias-statement">A long list can feel like progress. But who on it has a real reason to hear from you?</p>
-<p>Aliasearch grew from a problem I kept noticing in outreach work: writing a message is often treated as the hard part, while research gets rushed. A name from a directory or search result may be a lead. It does not tell me whether that person is real, relevant, reachable, or a good fit for the actual offer.</p>
-<p>I wanted a repeatable way to do that thinking carefully. Give Aliasearch a clear offer, audience, market, exclusions, desired count and evidence bar. It looks for candidates in appropriate public sources, keeps the evidence beside each decision and marks what is still uncertain. A draft message comes later, and only when asked.</p>
+<p class="alias-statement">A name in a list is a starting point, not a reason to reach out.</p>
+<p>I built Aliasearch after seeing how easy it is for outreach research to become a search for volume. A directory gives you names. A quick web search gives you snippets. A large spreadsheet can look persuasive. None of those things alone tells you whether a company is real, whether it buys or resells the relevant product, or whether your offer fits its work.</p>
+<p>The first practical task was to find plausible wholesale fabric buyers for a Mumbai textile manufacturer and exporter. The brief was specific, but the early research showed how quickly a candidate can look promising for the wrong reason. A company may work in textiles without buying this product. A directory may be out of date. A public profile may identify a person without showing that they handle purchasing.</p>
+<p>That gap between finding a name and being able to defend why it belongs on a shortlist became the product problem. I wanted a repeatable process that makes the reasoning visible, including the places where evidence is thin.</p>
 
-<h2>Four steps before a first message</h2>
+<h2>Research first, message later</h2>
+<p>Aliasearch is a reusable skill for an AI assistant, not an autonomous sales agent. It starts with a brief: the actual offer, who might buy it, the relevant market, exclusions, the evidence standard and the number of strong matches requested. If those details are vague, the research should pause for clarification instead of quietly filling in assumptions.</p>
 <div class="alias-flow">
-  <article class="alias-step"><span class="alias-step-number">01 / FRAME</span><h3>Say what you need.</h3><p>Who the offer helps, where to look and what does not count.</p></article>
-  <article class="alias-step"><span class="alias-step-number">02 / FIND</span><h3>Search useful places.</h3><p>Company sites, associations, directories and accessible public profiles.</p></article>
-  <article class="alias-step"><span class="alias-step-number">03 / CHECK</span><h3>Keep proof close.</h3><p>Resolve duplicates, verify claims and preserve source context.</p></article>
-  <article class="alias-step"><span class="alias-step-number">04 / DECIDE</span><h3>Return a reviewable list.</h3><p>Show fit and gaps so a person can choose the next step.</p></article>
+  <article class="alias-step"><span class="alias-step-number">01 / FRAME</span><h3>Define the offer.</h3><p>Clarify buyer, market, exclusions and what counts as evidence.</p></article>
+  <article class="alias-step"><span class="alias-step-number">02 / DISCOVER</span><h3>Find candidates.</h3><p>Use relevant company sites, directories and public sources.</p></article>
+  <article class="alias-step"><span class="alias-step-number">03 / VERIFY</span><h3>Check each claim.</h3><p>Deduplicate and record where identity, fit and contact details came from.</p></article>
+  <article class="alias-step"><span class="alias-step-number">04 / REVIEW</span><h3>Return a decision.</h3><p>Show evidence and gaps so a person can choose what happens next.</p></article>
 </div>
 
-<section class="alias-gates"><h2>What I want to know before contact</h2><div class="alias-gate"><strong>Identity</strong><span>Is this a real person or organisation in the right market?</span></div><div class="alias-gate"><strong>Need</strong><span>Is there evidence they experience the problem or serve the audience?</span></div><div class="alias-gate"><strong>Fit</strong><span>Does their work connect to this specific offer, not just the industry label?</span></div><div class="alias-gate"><strong>Route</strong><span>Is there a credible public way to reach them, with its source recorded?</span></div></section>
+<h2>Four questions before a prospect qualifies</h2>
+<p>A search result can help discover a company. Qualification asks for more. I use four checks to keep the decision grounded in the offer rather than a broad industry label.</p>
+<section class="alias-gates"><h2>Qualification checks</h2><div class="alias-gate"><strong>Identity</strong><span>Is this a real organisation in the market described by the brief?</span></div><div class="alias-gate"><strong>Buying role</strong><span>Is there evidence it buys, imports, stocks or resells through a relevant business route?</span></div><div class="alias-gate"><strong>Offer fit</strong><span>Does its product range or use connect to this specific offer?</span></div><div class="alias-gate"><strong>Contact route</strong><span>Is there a credible public business contact path, with its source recorded?</span></div></section>
+<p>These checks also make uncertainty useful. A candidate might pass identity but lack evidence of buying role. Another might fit the product but have no verified contact route. Those are different situations, and hiding both behind one green “qualified” label would make the result less trustworthy.</p>
 
-<h2>Why I made the evidence visible</h2>
-<p>Research can look more certain than it is. A polished spreadsheet may hide a weak source, an old fact or a guess about someone’s role. I wanted the tool to make those gaps easier to see.</p>
-<p>Aliasearch keeps possible candidates separate from qualified prospects, marks missing evidence and does not fill a requested count with weak matches. If the brief asks for twenty strong leads and only seven meet the bar, I would rather return seven with reasons than twenty that only look complete.</p>
-<div class="alias-boundary"><strong>A person stays in charge.</strong><p>Aliasearch does not send messages, promise internet-wide coverage or claim reply rates. It makes a researched decision easier to review; the person decides whether and how to reach out.</p></div>
+<h2>Evidence should travel with the recommendation</h2>
+<p>Reviews of the first research work found weak role evidence, uncertain product matches, stale or conflicting pages, and incomplete contact details. The issue was not that the search had found nothing. It was that the list did not always show which claims could be relied on.</p>
+<p>Aliasearch keeps candidates separate from verified companies, preserves source context, and records the reason behind a decision. A result should make it possible to ask: what did we observe, where did that information come from, how recent is it, and what remains unknown?</p>
+<p>That approach changes how I think about requested counts. If a brief asks for twenty strong prospects and only seven meet the bar, I would rather return seven with clear reasons than pad the list with weak matches. The number is part of the request, but it cannot make unsupported evidence stronger.</p>
 
-<h2>What I am trying to learn</h2>
-<p>I like building systems that help people repeat careful work without hiding their judgement. Aliasearch is still early. I want to learn where its research breaks, which evidence is enough to make a decision, and how to keep the workflow useful without turning every search into a giant report.</p>
-<p>If you do customer research or outreach, I would value hearing where this approach would help—or where it would slow you down.</p>
+<div class="alias-boundary"><strong>A person stays in charge.</strong><p>Aliasearch helps research and prepare a reviewable shortlist. It does not send messages, guarantee complete coverage or claim that a prospect will respond. A person decides whether the evidence is sufficient and whether contact makes sense.</p></div>
+
+<h2>What I want the tool to become</h2>
+<p>I want Aliasearch to make careful research easier to repeat, not to automate away judgement. A useful next version should help a researcher move from an offer to a defensible list without burying the reasons inside a long report. The evidence should be compact enough to review and detailed enough to challenge.</p>
+<p>It is still early. I need to learn where the qualification gates miss good prospects, where sources create false confidence, and how to keep the workflow focused when the brief itself is unclear. Better research may produce fewer names. That can be a better result if each one has a real reason to be there.</p>
+<p>If you do customer research or sell to other businesses, I would value hearing where this process would help and where it would slow you down.</p>

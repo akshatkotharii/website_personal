@@ -23,6 +23,8 @@ function getFingerprint() {
 }
 
 let currentPostId = null;
+let readingProgressHandler = null;
+let articleSectionObserver = null;
 
 // ── LOAD POST ──
 document.addEventListener('DOMContentLoaded', async () => {
@@ -33,6 +35,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   let post = null;
   const staticSlugs = new Set(['why-i-started-this-site', 'five-days-in-singapore', 'aliasearch-research-before-reachout', 'building-a-place-for-clean-energy-research', 'outreach-brain', 'spinsync-shared-laundry', 'smart-energy-nudging']);
+  const staticPost = staticSlugs.has(slug);
+  // Static files keep articles available offline; a matching database row is the editable source of truth.
+  const engagementRecordPromise = staticPost && sb
+    ? sb.from('posts').select('*').eq('slug', slug).maybeSingle()
+    : null;
 
   // Repo-backed posts should not wait for a failed database lookup first.
   if (staticSlugs.has(slug)) {
@@ -78,14 +85,118 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
   renderPost(wrap, post);
+  initArticleReading(wrap);
+  if (staticPost && !currentPostId) setEngagementPending();
 
   // Load likes + comments after post renders
   if (currentPostId) {
     loadThread(post);
     loadLikes(currentPostId);
     loadComments(currentPostId);
+  } else if (engagementRecordPromise) {
+    engagementRecordPromise.then(({ data, error }) => {
+      if (error) {
+        console.warn('Supabase engagement lookup failed:', error);
+        setEngagementUnavailable();
+        return;
+      }
+      if (!data) {
+        setEngagementUnavailable();
+        return;
+      }
+      currentPostId = data.id;
+      post = { ...post, ...data, content: data.content || post.content || post.html };
+      updateRenderedPost(wrap, post);
+      initArticleReading(wrap);
+      document.getElementById('likeBtn').disabled = false;
+      document.getElementById('commentSubmit').disabled = false;
+      loadThread(post);
+      loadLikes(currentPostId);
+      loadComments(currentPostId);
+    }).catch(error => {
+      console.warn('Supabase engagement lookup failed:', error);
+      setEngagementUnavailable();
+    });
+  } else if (staticPost) {
+    setEngagementUnavailable();
   }
 });
+
+function setEngagementPending() {
+  const likeButton = document.getElementById('likeBtn');
+  const likeCount = document.getElementById('likeCount');
+  const commentList = document.getElementById('commentList');
+  const commentSubmit = document.getElementById('commentSubmit');
+  if (likeButton) likeButton.disabled = true;
+  if (likeCount) likeCount.textContent = 'Connecting…';
+  if (commentList) commentList.innerHTML = '<div class="comment-empty">Checking this post’s discussion…</div>';
+  if (commentSubmit) commentSubmit.disabled = true;
+}
+
+function initArticleReading(wrap) {
+  const body = wrap.querySelector('.post-body');
+  if (!body) return;
+  wrap.querySelector('.article-map')?.remove();
+  document.querySelector('.article-progress')?.remove();
+  if (readingProgressHandler) removeEventListener('scroll', readingProgressHandler);
+  articleSectionObserver?.disconnect();
+  const headings = [...body.querySelectorAll('h2')].filter(h => !h.closest('.story-hero'));
+  if (!headings.length) return;
+
+  const minutes = Math.max(1, Math.ceil(body.innerText.trim().split(/\s+/).length / 220));
+  const toc = document.createElement('nav');
+  toc.className = 'article-map';
+  toc.setAttribute('aria-label', 'Sections in this project story');
+  const items = headings.map((heading, index) => {
+    if (!heading.id) heading.id = `story-section-${index + 1}`;
+    return `<a href="#${heading.id}" data-section-link="${heading.id}">${escapeText(heading.textContent.trim())}</a>`;
+  }).join('');
+  toc.innerHTML = `<div class="article-map-top"><span>In this story</span><span>${minutes} min · ${headings.length} sections</span></div><div class="article-map-links">${items}</div>`;
+  wrap.querySelector('.post-body').before(toc);
+
+  const progress = document.createElement('div');
+  progress.className = 'article-progress';
+  progress.setAttribute('role', 'progressbar');
+  progress.setAttribute('aria-label', 'Reading progress');
+  progress.setAttribute('aria-valuemin', '0');
+  progress.setAttribute('aria-valuemax', '100');
+  progress.innerHTML = '<span></span>';
+  document.body.append(progress);
+  const fill = progress.firstElementChild;
+  let queued = false;
+  const updateProgress = () => {
+    queued = false;
+    const max = document.documentElement.scrollHeight - innerHeight;
+    const value = max > 0 ? Math.min(100, Math.max(0, scrollY / max * 100)) : 0;
+    fill.style.transform = `scaleX(${value / 100})`;
+    progress.setAttribute('aria-valuenow', String(Math.round(value)));
+  };
+  readingProgressHandler = () => {
+    if (!queued) { queued = true; requestAnimationFrame(updateProgress); }
+  };
+  addEventListener('scroll', readingProgressHandler, { passive: true });
+  updateProgress();
+
+  if (!('IntersectionObserver' in window)) return;
+  const links = [...toc.querySelectorAll('[data-section-link]')];
+  articleSectionObserver = new IntersectionObserver(entries => {
+    const active = entries.filter(entry => entry.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+    if (!active) return;
+    links.forEach(link => link.setAttribute('aria-current', String(link.dataset.sectionLink === active.target.id)));
+  }, { rootMargin: '-18% 0px -70% 0px', threshold: 0 });
+  headings.forEach(heading => articleSectionObserver.observe(heading));
+}
+
+function setEngagementUnavailable() {
+  const likeButton = document.getElementById('likeBtn');
+  const likeCount = document.getElementById('likeCount');
+  const commentList = document.getElementById('commentList');
+  const commentSubmit = document.getElementById('commentSubmit');
+  if (likeButton) likeButton.disabled = true;
+  if (likeCount) likeCount.textContent = 'Engagement setup pending';
+  if (commentList) commentList.innerHTML = '<div class="comment-empty">Likes and comments are not connected for this post yet.</div>';
+  if (commentSubmit) commentSubmit.disabled = true;
+}
 
 // ── RENDER POST ──
 function renderPost(wrap, post) {
@@ -94,17 +205,7 @@ function renderPost(wrap, post) {
   const d       = new Date(rawDate);
   const dateStr = d.toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
 
-  const bodyHTML = post.content || post.html
-    ? (post.content || post.html)
-    : (post.body || '').split(/\n{2,}/).filter(Boolean).map(p => `<p>${p.replace(/\n/g,'<br>')}</p>`).join('');
-  let imageIndex = 0;
-  const safeBodyHTML = safeMarkup(bodyHTML).replace(/<img\b[^>]*>/gi, tag => {
-    const first = imageIndex++ === 0;
-    if (!/\sloading\s*=/i.test(tag)) tag = tag.replace(/<img\b/i, `<img loading="${first ? 'eager' : 'lazy'}"`);
-    if (!/\sdecoding\s*=/i.test(tag)) tag = tag.replace(/<img\b/i, '<img decoding="async"');
-    if (first && !/\sfetchpriority\s*=/i.test(tag)) tag = tag.replace(/<img\b/i, '<img fetchpriority="high"');
-    return tag;
-  });
+  const safeBodyHTML = prepareBodyHTML(post);
   const pdfUrl = post.source_pdf_path && sb
     ? sb.storage.from(PDF_BUCKET).getPublicUrl(post.source_pdf_path).data.publicUrl
     : '';
@@ -169,6 +270,34 @@ function renderPost(wrap, post) {
       <span style="font-family:var(--mono);font-size:11px;color:var(--gray-400);">Akshat Kothari</span>
     </div>
   `;
+}
+
+function prepareBodyHTML(post) {
+  const bodyHTML = post.content || post.html
+    ? (post.content || post.html)
+    : (post.body || '').split(/\n{2,}/).filter(Boolean).map(p => `<p>${p.replace(/\n/g,'<br>')}</p>`).join('');
+  let imageIndex = 0;
+  return safeMarkup(bodyHTML).replace(/<img\b[^>]*>/gi, tag => {
+    const first = imageIndex++ === 0;
+    if (!/\sloading\s*=/i.test(tag)) tag = tag.replace(/<img\b/i, `<img loading="${first ? 'eager' : 'lazy'}"`);
+    if (!/\sdecoding\s*=/i.test(tag)) tag = tag.replace(/<img\b/i, '<img decoding="async"');
+    if (first && !/\sfetchpriority\s*=/i.test(tag)) tag = tag.replace(/<img\b/i, '<img fetchpriority="high"');
+    return tag;
+  });
+}
+
+function updateRenderedPost(wrap, post) {
+  const date = new Date(post.created_at || post.date || new Date().toISOString());
+  const meta = wrap.querySelector('.post-meta');
+  const title = wrap.querySelector('.post-title');
+  const body = wrap.querySelector('.post-body');
+  if (title) title.textContent = post.title;
+  if (meta) {
+    meta.firstElementChild.textContent = date.toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
+    meta.lastElementChild.textContent = post.category || post.cat || 'personal';
+  }
+  if (body) body.innerHTML = prepareBodyHTML(post);
+  document.title = `${post.title} — Akshat Kothari`;
 }
 
 // Render original post plus every linked follow-up, each with its own date.

@@ -1,30 +1,38 @@
 <section class="story-hero spin-hero">
   <p class="story-kicker">SpinSync · a shared-laundry project</p>
   <h2 class="story-title">A free machine should not be a guessing game.</h2>
-  <p class="story-lede">Six of us knew the routine: walk to the hostel laundry room, find every machine occupied, and plan another trip. We wanted to make that small daily system easier to understand.</p>
-  <div class="spin-scene"><div class="spin-washer" aria-hidden="true"><div class="spin-drum"></div></div><div class="spin-scene-copy">A live view could help someone decide whether to go, wait, or join the next turn.</div></div>
+  <p class="story-lede">We kept making the same trip to the hostel laundry room, only to find every machine occupied. SpinSync began as an attempt to make that small daily system easier to see, share and trust.</p>
+  <div class="spin-scene"><div class="spin-washer" aria-hidden="true"><div class="spin-drum"></div></div><div class="spin-scene-copy">A useful status view should help someone decide whether to go, wait or join the next turn.</div></div>
 </section>
 
-<p>SpinSync grew during a two-semester Innovation Lab and Grand Challenge project at Plaksha University in Mohali. On the six-person team, I led solution design. We started with a booking-app idea, then looked more closely at what actually made the laundry room frustrating.</p>
+<p>SpinSync took shape during a two-semester Innovation Lab and Grand Challenge project at Plaksha University in Mohali. Our six-person team was asked to work on a real problem. I led solution design, and the first answer seemed obvious: build an app where students could book a washing machine.</p>
+<p>But a booking only tells us what someone planned to do. It does not tell the next student whether a machine is actually running, whether a cycle has finished, or whether anyone has collected the clothes. We needed to understand the room before deciding what software belonged in it.</p>
 
-<h2>What students told us</h2>
-<p>In an April 2026 survey, 70 hostel residents described how they used the shared machines. The clearest signals were not subtle:</p>
-<div class="spin-stats" aria-label="Findings from 70 survey submissions">
+<h2>Start with the routine, not the feature list</h2>
+<p>We surveyed residents from 16 to 21 April 2026 and received 70 submissions. Students described several linked frustrations: finding a machine already occupied, walking over just to check, waiting for clothes to be removed, and trying to work out whose turn came next.</p>
+<div class="spin-stats" aria-label="Selected findings from 70 survey submissions">
   <div class="spin-stat"><strong>80%</strong><span>56 of 70 said clothes were left in machines after cycles.</span></div>
   <div class="spin-stat"><strong>73%</strong><span>51 of 70 found machines occupied when they wanted one.</span></div>
   <div class="spin-stat"><strong>87%</strong><span>61 of 70 physically checked whether a machine was free.</span></div>
+  <div class="spin-stat"><strong>46</strong><span>of 70 reported waits of 30 minutes or more in the named survey categories.</span></div>
 </div>
-<p>These are answers from our survey, not a campus-wide estimate or proof that a new system will fix the problem. They helped us see that laundry involves several connected moments: checking availability, taking a fair turn, noticing when a cycle ends, and making room for the next person.</p>
+<p>These answers helped us locate the friction. They do not prove that a booking app, reminder or sensor will solve it. The sample also has a clear limit: 62 of the 70 responses came from H2 boys hostel. We should not present it as a campus-wide estimate. A fresh study needs more balanced participation and consistent information about hostel and machine access.</p>
+<p>That caveat changed how I thought about “validation.” The survey was useful because it gave us a better next question, not because it approved every feature we had imagined.</p>
 
-<h2>Why booking was not enough</h2>
-<p>A reservation can say who planned to use a machine. It cannot prove that the machine started, that the cycle finished, or that clothes were collected. We began shaping SpinSync as a service around the physical machine and the people sharing it.</p>
-<div class="spin-system" aria-label="Parts of the SpinSync concept">
-  <span>See machine status</span><span>Book or join queue</span><span>Get cycle reminders</span><span>Report a problem</span>
+<h2>A booking app grew into a shared service</h2>
+<p>We began sketching a system around the whole laundry cycle: see a machine’s status, reserve a turn or join a queue, receive a reminder when a cycle is near its end, and report a fault. An admin view could help someone review machine issues and exceptions. The aim is to make the next step visible to the people sharing the room.</p>
+<div class="spin-system" aria-label="The four parts of the SpinSync concept">
+  <span>See machine status</span><span>Book or join queue</span><span>Get a cycle reminder</span><span>Report a problem</span>
 </div>
-<p>The concept combines a live machine view with bookings and queues, pickup reminders, reporting, and an admin path for faults or exceptions. A smart socket might help signal when a cycle starts or ends, but that signal needs testing. It cannot tell whether clothes were removed, and it cannot replace a manual fallback when the network or hardware fails.</p>
+<p>We also explored smart sockets as a way to estimate when a machine starts or stops drawing power. That signal could help update a status, but it cannot tell whether clothes have been removed. Different cycles and faults can also produce patterns that are hard to interpret. Any pilot needs to compare socket readings with what is actually happening at the machine, and provide a manual fallback for hardware or network problems.</p>
 
-<div class="story-callout"><strong>Fairness shaped the design.</strong> A late pickup can happen for many reasons. The team considered a buffer, evidence-based reports and human review, rather than letting an uncertain sensor trigger an automatic penalty.</div>
+<h2>Fairness needs human judgement</h2>
+<p>The difficult cases are not edge cases for the people involved. Someone may be delayed for a genuine reason. A machine may fail. A sensor may report the wrong state. If the system turns those uncertainties straight into penalties, it could make the room feel less fair instead of more organised.</p>
+<div class="story-callout"><strong>Design principle:</strong> use clear reminders, reasonable pickup buffers, a way to report problems, and human review for disputed events. Let the system make coordination easier without pretending it knows more than its evidence supports.</div>
+<p>This is why we treated accountability as a design question, not a punishment feature. The software should help people see what happened and resolve a problem, while leaving room for context that a machine cannot observe.</p>
 
-<h2>What comes next</h2>
-<p>We have finished the course project, then chosen to continue SpinSync independently. The next step is practical: refresh the survey, talk with hostel stakeholders, validate the socket signal, and propose a small pilot on a limited number of machines.</p>
-<p>There is no public demo yet, and the concept has not been shown to reduce waiting, disputes or pickup delays in a real hostel. A pilot would need to measure those things before we could say it works. For me, the project is a good reminder that building a useful app often starts with asking what the real-world system needs to do when people, machines and plans do not line up neatly.</p>
+<h2>What a small pilot should tell us</h2>
+<p>The course project is complete, and I am continuing SpinSync independently. Before building a larger system, I want to refresh the survey, speak with hostel residents and decision-makers, and validate the smart-socket signal on a limited number of machines.</p>
+<p>A controlled pilot should give us evidence about practical questions: do people check availability before walking over? Are machine states accurate enough to rely on? Do reminders help clothes get collected sooner? Do queues feel understandable and fair? What happens when a machine or connection fails? We would need to agree on those measures before deciding whether the system deserves to grow.</p>
+<p>There is no public demo yet. SpinSync has not been shown to reduce waiting, disputes or pickup delays in a live hostel. That is the point of the next step: find out what works in the room, not just what looks convincing in a prototype.</p>
+<p>I still like the original idea because it is ordinary. Shared laundry is a small system, but it brings together people, machines, timing and trust. Designing for the messy moments between those parts has been more useful than starting with an app screen and assuming the rest will take care of itself.</p>

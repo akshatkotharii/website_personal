@@ -1,35 +1,41 @@
 <section class="story-hero nudgen-hero">
   <p class="story-kicker">A product story · outreach</p>
   <h2 class="story-title">The next person should not have to start over.</h2>
-  <p class="story-lede">I began with a spreadsheet, a small event team, and around 600 contacts. The list was not the hard part. Keeping the team in sync was.</p>
+  <p class="story-lede">For one college event, two or three of us were coordinating around 600 contacts. The spreadsheet held the list. It could not reliably hold the whole conversation.</p>
   <a class="story-link" href="https://outreach-brain.aliass.workers.dev/" target="_blank" rel="noopener noreferrer">Open the live workspace ↗</a>
 </section>
 
-<p>For one college event, two or three of us were coordinating a long contact list. Excel helped us collect names, sort colleges, and prepare messages. But the actual work moved through calls, personal phones, and conversations between teammates.</p>
-<p>A row might say “contacted”. It did not always tell the next person <em>who spoke to them, what they discussed, or when to follow up</em>. If the owner changed, the conversation could lose its history. I first thought we needed a better list. Then I realised we needed a better handoff.</p>
+<p>Excel was a sensible place to begin. We could collect names, sort colleges, prepare messages and share a working list. The trouble started after someone made contact. Calls happened on personal phones, messages sat in different places, and context moved between teammates in quick conversations.</p>
+<p>A row marked “contacted” left too much unanswered. Who spoke with the person? What did they ask for? Was there a registration link to send? Should someone call next week, or leave them alone? When the owner changed, the next teammate could inherit a name without inheriting the conversation.</p>
+<p>I first thought we needed a more organised spreadsheet. Then I realised the real problem was the handoff. The next person needed enough context to continue with care, without asking the contact to explain everything again.</p>
 
-<h2>From one list to a shared next step</h2>
-<div class="nudgen-workflow" aria-label="Outreach workflow">
+<h2>Make the next action visible</h2>
+<p>That became the centre of Outreach Brain: import the list a team already has, assign responsibility, record what happened, and make the next step explicit. A contact should not sit in a vague “done” state when the real work is still unfolding.</p>
+<div class="nudgen-workflow" aria-label="The shared outreach loop">
   <div class="nudgen-step"><b>01 / BRING IN</b><strong>Import the list</strong></div>
-  <div class="nudgen-step"><b>02 / OWN</b><strong>Assign a person</strong></div>
-  <div class="nudgen-step"><b>03 / REMEMBER</b><strong>Record the conversation</strong></div>
-  <div class="nudgen-step"><b>04 / CONTINUE</b><strong>Make next action clear</strong></div>
+  <div class="nudgen-step"><b>02 / OWN</b><strong>Assign a teammate</strong></div>
+  <div class="nudgen-step"><b>03 / REMEMBER</b><strong>Record the outcome</strong></div>
+  <div class="nudgen-step"><b>04 / CONTINUE</b><strong>Set the next action</strong></div>
 </div>
+<p>The first version supports Excel import, checks for duplicate and incomplete records, and connects contacts with events and registrations. A teammate can record a call or message outcome, keep a note, assign a follow-up and set a reminder. The point is not to make every interaction elaborate. It is to give a team a shared memory for the details that change what should happen next.</p>
+<p>That shared record matters most when work crosses people. One person may make the first call, another may answer a question about an event, and someone else may need to confirm a registration. If each person sees the relevant history and their own next task, the team has a better chance of continuing the relationship instead of restarting it.</p>
 
-<p>That became the shape of the tool. A team can import Excel contacts, catch duplicates and validation problems, assign ownership, record calls and notes, set reminders, and connect people to events or registrations. The goal is not to replace every spreadsheet. It is to keep shared work from depending on scattered memory.</p>
-<p>The live app currently presents itself as <strong>Nudgen</strong>. I think of the original problem as Outreach Brain: how do we keep a team’s outreach thoughtful when the list gets bigger than one person can hold in their head?</p>
-
-<h2>Useful for the people doing the work</h2>
-<div class="story-flow" aria-label="What each role needs">
-  <div class="story-flow-card"><b>ADMIN</b><strong>Set up</strong><span>Manage the workspace and team access.</span></div>
-  <div class="story-flow-card"><b>MEMBER</b><strong>Follow through</strong><span>Work contacts, conversations and reminders.</span></div>
-  <div class="story-flow-card"><b>DASHBOARD</b><strong>See progress</strong><span>Review selected aggregate progress without contact-level access.</span></div>
-  <div class="story-flow-card"><b>TEAM</b><strong>Keep records portable</strong><span>Export work instead of trapping it in one tool.</span></div>
+<h2>Different people need different views</h2>
+<p>As the tool took shape, I had to think about who should see and change what. An admin needs to manage the workspace and team access. Members need to work with contacts and follow-ups. Someone checking overall progress may need a read-only dashboard, without access to every person's contact details.</p>
+<div class="story-flow" aria-label="Roles in the outreach workspace">
+  <div class="story-flow-card"><b>ADMIN</b><strong>Set up the team</strong><span>Manage workspace access and shared settings.</span></div>
+  <div class="story-flow-card"><b>MEMBER</b><strong>Continue the work</strong><span>Handle contacts, conversations and reminders.</span></div>
+  <div class="story-flow-card"><b>DASHBOARD</b><strong>Review progress</strong><span>See selected totals without contact-level access.</span></div>
+  <div class="story-flow-card"><b>TEAM</b><strong>Keep records portable</strong><span>Export data instead of locking it into one tool.</span></div>
 </div>
+<p>That is why permissions and exports belong in the product from the start. A team should be able to limit access by role and still take its records elsewhere. Import matters because people already have work in spreadsheets. Export matters because they should remain in control of it.</p>
 
-<p>I learned to treat permissions and exports as part of the product, not cleanup for later. People need different levels of access, and teams should be able to take their records with them. That is why the workflow also separates workspace roles, limits what a dashboard role can see, and keeps sending permissions distinct.</p>
-<p>Two outreach teams tried versions of the tool, and conversations with people who work on user interfaces helped me question what belonged in it. Feedback kept bringing me back to a simple test: does this help the next teammate take a sensible next step?</p>
+<h2>Keep the useful parts of a spreadsheet</h2>
+<p>I do not think every team needs to move every list into a new system. For one person or a small, short-lived list, Excel may be the clearest tool. It is flexible, familiar and easy to inspect. A shared workspace becomes more useful when several people need the same history, ownership and follow-up rhythm.</p>
+<p>Import and export let those tools work together. That decision also keeps the product honest about its job: coordinate the conversations that need coordination, rather than replacing a format people already know how to use.</p>
+<p>Two outreach teams tried versions of the tool, and I asked people with user-interface experience to challenge the workflow. Their feedback made me reconsider what belonged on screen. Every extra status, field or button asks a teammate to learn and maintain one more thing. I keep coming back to a simple question: does this detail help someone make a better next move?</p>
 
-<details class="story-details"><summary>What I am still careful about</summary><div><p>The current WhatsApp connection is an unofficial bridge intended for controlled testing. Delivery indicators are provider-reported signals, not a guarantee of a person’s response. I do not want a product story to confuse a working feature with proof that it is ready for every team.</p></div></details>
+<details class="story-details"><summary>What still needs care</summary><div><p>The current WhatsApp connection uses an unofficial bridge intended for controlled testing. Delivery labels are provider-reported signals, not proof that a person read or acted on a message. Message sending has its own permissions. Those boundaries matter before a team relies on the tool more widely.</p></div></details>
 
-<p>That is still the part I find interesting: a team does not need more activity for its own sake. It needs enough shared context to continue a conversation with care. I want to keep learning from teams who manage outreach in spreadsheets, and understand where this tool makes their work easier—and where it gets in the way.</p>
+<p>The live application presents itself as Nudgen. I still think of the problem as Outreach Brain: how can a small team handle a large contact list without turning people into rows or losing the thread between conversations?</p>
+<p>I built the first version to solve a problem I faced. The more useful test now is whether another team can use it without me standing beside them to explain every step. I want to learn where it saves effort, where it adds friction, and which parts should stay in a spreadsheet.</p>

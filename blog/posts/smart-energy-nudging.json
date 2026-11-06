@@ -3,6 +3,6 @@
   "slug": "smart-energy-nudging",
   "date": "2026-11-04T10:40:00+05:30",
   "cat": "research",
-  "excerpt": "At IVCCE, I am building a privacy-conscious WhatsApp energy coach. This is the research question, the system choices behind it, what has been tested, and the field evidence we still need.",
+  "excerpt": "At IVCCE, I am building a WhatsApp energy coach around smart-socket readings. I explain the research question, why I narrowed AI's role, what the failed field installation taught me, and which evidence gates remain.",
   "content_file": "posts/smart-energy-nudging.html"
 }

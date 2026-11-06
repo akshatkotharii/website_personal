@@ -51,9 +51,18 @@ create table if not exists public.notebook_entries (
  title text not null check(char_length(title) between 1 and 240),
  body text not null check(char_length(body) between 1 and 4000),
  url text not null default '' check(url='' or url ~ '^https?://'),
- published boolean not null default false, created_at timestamptz not null default now()
+ published boolean not null default false,
+ scene_type text not null default 'evidence-trail' check(scene_type in ('evidence-trail','performance-lab','workflow-map','field-guide')),
+ created_at timestamptz not null default now()
 );
 alter table public.notebook_entries add column if not exists sprint_day integer check(sprint_day between 1 and 30);
+alter table public.notebook_entries add column if not exists scene_type text not null default 'evidence-trail';
+do $$
+begin
+ if not exists (select 1 from pg_constraint where conrelid='public.notebook_entries'::regclass and conname='notebook_entries_scene_type_check') then
+   alter table public.notebook_entries add constraint notebook_entries_scene_type_check check(scene_type in ('evidence-trail','performance-lab','workflow-map','field-guide'));
+ end if;
+end $$;
 create index if not exists notebook_entries_project_date on public.notebook_entries(project_id,created_at desc);
 alter table public.notebook_projects enable row level security;
 alter table public.notebook_entries enable row level security;

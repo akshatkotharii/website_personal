@@ -24,7 +24,6 @@ function getFingerprint() {
 
 let currentPostId = null;
 let readingProgressHandler = null;
-let articleSectionObserver = null;
 
 // ── LOAD POST ──
 document.addEventListener('DOMContentLoaded', async () => {
@@ -139,20 +138,6 @@ function initArticleReading(wrap) {
   wrap.querySelector('.article-map')?.remove();
   document.querySelector('.article-progress')?.remove();
   if (readingProgressHandler) removeEventListener('scroll', readingProgressHandler);
-  articleSectionObserver?.disconnect();
-  const headings = [...body.querySelectorAll('h2')].filter(h => !h.closest('.story-hero'));
-  if (!headings.length) return;
-
-  const minutes = Math.max(1, Math.ceil(body.innerText.trim().split(/\s+/).length / 220));
-  const toc = document.createElement('nav');
-  toc.className = 'article-map';
-  toc.setAttribute('aria-label', 'Sections in this project story');
-  const items = headings.map((heading, index) => {
-    if (!heading.id) heading.id = `story-section-${index + 1}`;
-    return `<a href="#${heading.id}" data-section-link="${heading.id}">${escapeText(heading.textContent.trim())}</a>`;
-  }).join('');
-  toc.innerHTML = `<div class="article-map-top"><span>In this story</span><span>${minutes} min · ${headings.length} sections</span></div><div class="article-map-links">${items}</div>`;
-  wrap.querySelector('.post-body').before(toc);
 
   const progress = document.createElement('div');
   progress.className = 'article-progress';
@@ -166,8 +151,10 @@ function initArticleReading(wrap) {
   let queued = false;
   const updateProgress = () => {
     queued = false;
-    const max = document.documentElement.scrollHeight - innerHeight;
-    const value = max > 0 ? Math.min(100, Math.max(0, scrollY / max * 100)) : 0;
+    const bounds = body.getBoundingClientRect();
+    const start = bounds.top + scrollY;
+    const scrollableArticle = Math.max(bounds.height - innerHeight, 1);
+    const value = Math.min(100, Math.max(0, (scrollY - start) / scrollableArticle * 100));
     fill.style.transform = `scaleX(${value / 100})`;
     progress.setAttribute('aria-valuenow', String(Math.round(value)));
   };
@@ -176,15 +163,6 @@ function initArticleReading(wrap) {
   };
   addEventListener('scroll', readingProgressHandler, { passive: true });
   updateProgress();
-
-  if (!('IntersectionObserver' in window)) return;
-  const links = [...toc.querySelectorAll('[data-section-link]')];
-  articleSectionObserver = new IntersectionObserver(entries => {
-    const active = entries.filter(entry => entry.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
-    if (!active) return;
-    links.forEach(link => link.setAttribute('aria-current', String(link.dataset.sectionLink === active.target.id)));
-  }, { rootMargin: '-18% 0px -70% 0px', threshold: 0 });
-  headings.forEach(heading => articleSectionObserver.observe(heading));
 }
 
 function setEngagementUnavailable() {

@@ -68,8 +68,7 @@
   }
   function render() {
     const visible = projects.filter(matching);
-    const connections='<svg class="notebook-connectors" viewBox="0 0 720 500" preserveAspectRatio="none" aria-hidden="true"><path d="M100 220 C40 260 280 290 180 320 M350 220 C310 270 580 280 540 320 M640 220 C700 290 640 320 610 345"/></svg>';
-    board.innerHTML = visible.length ? connections + visible.map((p,i) => `<button class="notebook-note note-${i % 5} ${p.id === skillCollectionId ? 'notebook-note-skills' : ''}" type="button" data-project="${escape(p.id)}" data-project-icon="${escape(p.icon || 'spark')}" data-project-motion="${escape(p.animation || 'breathe')}" aria-haspopup="dialog" aria-label="Open ${escape(p.title)} project details">
+    board.innerHTML = visible.length ? visible.map((p,i) => `<button class="notebook-note note-${i % 5} ${p.id === skillCollectionId ? 'notebook-note-skills' : ''}" type="button" data-project="${escape(p.id)}" data-project-icon="${escape(p.icon || 'spark')}" data-project-motion="${escape(p.animation || 'breathe')}" aria-haspopup="dialog" aria-label="Open ${escape(p.title)} project details">
       <span class="note-top"><span class="note-kind">${escape(p.kind)}</span><span class="note-illustration" aria-hidden="true">${art.render(p.icon)}</span></span>
       <span class="note-title">${escape(p.title)}</span><span class="note-summary">${escape(p.summary)}</span>
       <span class="note-bottom"><span class="note-status status-${escape(p.status)}">${labels[p.status] || 'In progress'}</span><span class="note-open" aria-hidden="true">↗</span></span>
@@ -120,7 +119,7 @@
       <div class="skill-specimen-top"><span>${escape(scene.label)}</span><span>${String(index+1).padStart(2,'0')} / ${String(total).padStart(2,'0')}</span></div>
       <div class="skill-title-row"><div><h3>${escape(skill.title)}</h3><p>${escape(skill.body)}</p></div><span class="skill-source-stamp" aria-hidden="true">FIELD<br>NOTES</span></div>
       ${metrics}
-      <div class="skill-trail" role="group" aria-label="Explore ${escape(skill.title)} ${escape(scene.label.toLowerCase())}">
+      <div class="skill-trail" role="group" aria-label="Explore ${escape(skill.title)} ${escape(scene.label.toLowerCase())}" style="--trail-count:${scene.steps.length};--trail-inset:${50/scene.steps.length}%">
         <div class="skill-trail-line" aria-hidden="true"><span style="--trail-progress:${stage/(scene.steps.length-1)*100}%"></span></div>
         ${scene.steps.map((label,i)=>`<button type="button" class="skill-trail-step" data-skill-stage="${i}" aria-pressed="${i===stage}" aria-label="${escape(label)}, step ${i+1} of ${scene.steps.length}"><span>${String(i+1).padStart(2,'0')}</span><b>${escape(label)}</b></button>`).join('')}
       </div>

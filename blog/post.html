@@ -199,18 +199,10 @@
     .reading-size input:focus-visible { outline:2px solid var(--accent); outline-offset:4px; border-radius:4px; }
     .article-progress { position:fixed; z-index:1001; inset:0 0 auto; height:2px; pointer-events:none; background:transparent; }
     .article-progress span { display:block; width:100%; height:100%; background:var(--accent); transform:scaleX(0); transform-origin:left center; }
-    .article-map { margin:0 0 2rem; padding:1rem 0 .9rem; border-top:1px solid var(--gray-100); border-bottom:1px solid var(--gray-100); }
-    .article-map-top { display:flex; justify-content:space-between; gap:1rem; margin-bottom:.7rem; color:var(--gray-400); font:10px var(--mono); letter-spacing:.08em; text-transform:uppercase; }
-    .article-map-links { display:flex; gap:.45rem; overflow-x:auto; padding:2px 1px 5px; scrollbar-width:thin; scrollbar-color:var(--gray-200) transparent; }
-    .article-map-links a { flex:0 0 auto; max-width:220px; padding:.45rem .65rem; border:1px solid var(--gray-100); border-radius:999px; color:var(--gray-600); background:var(--white); font:11px/1.35 var(--mono); text-decoration:none; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; transition:color .18s,border-color .18s,background .18s; }
-    .article-map-links a:hover,.article-map-links a[aria-current="true"] { border-color:var(--accent); color:var(--accent); background:var(--accent-soft); }
-    .post-body h2[id] { scroll-margin-top:5rem; }
     @media(max-width:720px){.cef-steps{grid-template-columns:repeat(2,minmax(0,1fr))}}
     @media(max-width:620px){.story-flow,.nudgen-workflow,.energy-route{grid-template-columns:repeat(2,minmax(0,1fr))}.spin-system{grid-template-columns:repeat(2,minmax(0,1fr))}.story-flow-card{min-height:95px}.energy-checkpoint{grid-template-columns:1fr}.spin-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.spin-stat{padding:.7rem}.spin-stat strong{font-size:26px}}
     @media(max-width:420px){.energy-layers{grid-template-columns:1fr}.spin-stats{grid-template-columns:1fr}.spin-scene{align-items:flex-start}.spin-washer{width:68px;height:68px;flex-basis:68px}.spin-drum{width:43px;height:43px}}
     @media(max-width:520px){.reading-size{justify-content:space-between;gap:.5rem;margin:-.2rem 0 1.25rem}.reading-size-control{gap:.4rem}.reading-size input{width:clamp(90px,36vw,150px)}.post-body{font-size:calc(17px * var(--reading-scale));line-height:1.75}.post-body h2{font-size:calc(27px * var(--reading-scale))}}
-    @media(max-width:520px){.article-map{margin-bottom:1.5rem}.article-map-top{font-size:9px}.article-map-links a{max-width:180px;font-size:10px}}
-    @media(prefers-reduced-motion:reduce){.article-map-links a{transition:none}}
     @media(prefers-reduced-motion:reduce){.spin-drum{animation:none}}
     @media (max-width: 540px) {
       .alias-flow { grid-template-columns: 1fr; }
@@ -403,6 +395,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 <script src="../js/supabase-config.js" defer></script>
-<script src="../js/blog-post.js" defer></script>
+<script src="../js/blog-post.js?v=20261107b" defer></script>
 </body>
 </html>

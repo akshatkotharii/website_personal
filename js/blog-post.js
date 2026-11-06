@@ -316,25 +316,41 @@ async function loadThread(post) {
 // Likes are scoped by a random local token; raw visitor tokens are never public.
 let likedHere=false;
 function renderLikes(result) {
+  if (!result || typeof result !== 'object') throw new Error('Like status response is empty');
   likedHere=!!result.liked;
   const btn=document.getElementById('likeBtn'), n=Number(result.count)||0;
+  if (!btn) return;
   btn.classList.toggle('liked',likedHere);
   btn.innerHTML=likedHere?'<span>♥ Liked</span>':'<span>♡ Like this post</span>';
-  document.getElementById('likeCount').textContent=n+' '+(n===1?'like':'likes');
+  const count=document.getElementById('likeCount');
+  if (count) count.textContent=n+' '+(n===1?'like':'likes');
 }
 async function loadLikes(postId) {
   if(!sb)return;
-  const {data,error}=await sb.rpc('portfolio_like_state',{p_post_id:postId,p_token:getFingerprint()});
-  if(error){document.getElementById('likeCount').textContent='Likes temporarily unavailable';return;}
-  renderLikes(data);
+  try {
+    const {data,error}=await sb.rpc('portfolio_like_state',{p_post_id:postId,p_token:getFingerprint()});
+    if(error) throw error;
+    renderLikes(data);
+  } catch(error) {
+    console.warn('Could not load likes:', error);
+    const count=document.getElementById('likeCount');
+    if(count) count.textContent='Likes temporarily unavailable';
+  }
 }
 async function toggleLike() {
   if(!sb||!currentPostId)return;
-  const btn=document.getElementById('likeBtn');btn.disabled=true;
+  const btn=document.getElementById('likeBtn');
+  if(!btn)return;
+  btn.disabled=true;
   try{
     const {data,error}=await sb.rpc('portfolio_set_like',{p_post_id:currentPostId,p_token:getFingerprint(),p_liked:!likedHere});
-    if(error)throw error;renderLikes(data);
-  }catch{document.getElementById('likeCount').textContent='Could not save like. Try again.';}
+    if(error)throw error;
+    renderLikes(data);
+  }catch(error){
+    console.warn('Could not save like:', error);
+    const count=document.getElementById('likeCount');
+    if(count)count.textContent='Could not save like. Try again.';
+  }
   finally{btn.disabled=false;}
 }
 
@@ -355,7 +371,12 @@ async function loadComments(postId) {
     .eq('approved', true)
     .order('created_at', { ascending: true });
 
-  if (error || !comments || !comments.length) {
+  if (error) {
+    console.warn('Could not load comments:', error);
+    list.innerHTML = '<div class="comment-empty">Comments are temporarily unavailable. Please try again later.</div>';
+    return;
+  }
+  if (!comments || !comments.length) {
     list.innerHTML = '<div class="comment-empty">No comments yet. Be the first to say something.</div>';
     return;
   }
@@ -405,23 +426,24 @@ async function submitComment() {
     return;
   }
 
-  const { error } = await sb.from('comments').insert({
-    post_id: currentPostId,
-    name,
-    message,
-  });
-
-  btn.disabled    = false;
-  btn.textContent = 'Post comment →';
-
-  if (error) {
-    notice.textContent = 'Something went wrong. Try again.';
-    notice.className   = 'comment-notice err';
-  } else {
+  try {
+    const { error } = await sb.from('comments').insert({
+      post_id: currentPostId,
+      name,
+      message,
+    });
+    if (error) throw error;
     document.getElementById('commentName').value = '';
     document.getElementById('commentMsg').value  = '';
     notice.textContent = '✓ Comment submitted — it\'ll appear after review.';
     notice.className   = 'comment-notice ok';
+  } catch(error) {
+    console.warn('Could not submit comment:', error);
+    notice.textContent = 'Could not submit comment. Please try again.';
+    notice.className   = 'comment-notice err';
+  } finally {
+    btn.disabled    = false;
+    btn.textContent = 'Post comment →';
   }
 }
 
@@ -437,5 +459,8 @@ function showNotFound(wrap) {
 function escHtml(s) {
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
-document.getElementById('likeBtn')?.addEventListener('click', toggleLike);
-document.getElementById('commentSubmit')?.addEventListener('click', submitComment);
+document.addEventListener('click', event => {
+  if (!(event.target instanceof Element)) return;
+  if (event.target.closest('#likeBtn')) toggleLike();
+  else if (event.target.closest('#commentSubmit')) submitComment();
+});

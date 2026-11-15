@@ -248,6 +248,22 @@ function renderPost(wrap, post) {
       <span style="font-family:var(--mono);font-size:11px;color:var(--gray-400);">Akshat Kothari</span>
     </div>
   `;
+  attachOutreachFilm(wrap, post);
+}
+
+function attachOutreachFilm(wrap, post) {
+  if (post.slug !== 'outreach-brain') return;
+  const body = wrap.querySelector('.post-body');
+  if (!body) return;
+  const film = document.createElement('figure');
+  film.className = 'project-film';
+  film.innerHTML = `<video controls playsinline preload="none" poster="media/nudgen-poster.jpg" width="1920" height="1080" aria-label="Nudgen launch film">
+    <source src="media/nudgen-launch-film.mp4" type="video/mp4">
+    Your browser does not support this video. <a href="media/nudgen-launch-film.mp4">Watch the film</a>.
+  </video><figcaption>Nudgen · 48-second film</figcaption>`;
+  const hero = body.querySelector('.story-hero');
+  if (hero) hero.after(film);
+  else body.prepend(film);
 }
 
 function prepareBodyHTML(post) {
@@ -275,6 +291,7 @@ function updateRenderedPost(wrap, post) {
     meta.lastElementChild.textContent = post.category || post.cat || 'personal';
   }
   if (body) body.innerHTML = prepareBodyHTML(post);
+  attachOutreachFilm(wrap, post);
   document.title = `${post.title} — Akshat Kothari`;
 }
 
